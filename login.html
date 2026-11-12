@@ -1,246 +1,180 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login | Digital Production Request</title>
-
   <style>
-   
-.dashboard-link {
-  display: block;
-  margin-top: 20px;
-  padding: 13px;
-  background: #142d4e;
-  color: white;
-  text-align: center;
-  text-decoration: none;
-  border-radius: 8px;
-  font-size: 15px;
-  font-weight: bold;
-}
-
-.dashboard-link:hover {
-  background: #187f9d;
-}
-
-    }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      background: #eef3f8;
-      font-family: Arial, sans-serif;
-    }
-
-    .login-box {
-      width: 100%;
-      max-width: 420px;
-      padding: 35px;
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 8px 30px #00000012;
-    }
-
-    h2 {
-      color: #142d4e;
-      margin-bottom: 10px;
-    }
-
-    p {
-      color: #526173;
-      line-height: 1.5;
-    }
-
-    label {
-      display: block;
-      margin-top: 18px;
-      margin-bottom: 8px;
-      font-weight: bold;
-    }
-
-    input {
-      width: 100%;
-      padding: 13px;
-      border: 1px solid #ccd5e0;
-      border-radius: 8px;
-      font-size: 15px;
-    }
-
-    button {
-      width: 100%;
-      margin-top: 22px;
-      padding: 13px;
-      background: #187f9d;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 15px;
-      font-weight: bold;
-    }
-
-    button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    #message {
-      margin-top: 15px;
-    }
-
-    #userPanel {
-      display: none;
-    }
-    
-.dashboard-link {
-  display: block;
-  margin-top: 20px;
-  padding: 13px;
-  background: #142d4e;
-  color: white;
-  text-align: center;
-  text-decoration: none;
-  border-radius: 8px;
-  font-size: 15px;
-  font-weight: bold;
-}
-
-.dashboard-link:hover {
-  background: #187f9d;
-}
-
+    :root { font-family: Arial, sans-serif; color: #17304d; background: #eef3f8; }
+    * { box-sizing: border-box; }
+    body { min-height: 100vh; margin: 0; padding: 20px; display: grid; place-items: center; }
+    .card { width: 100%; max-width: 430px; background: #fff; padding: 34px; border-radius: 16px; box-shadow: 0 12px 35px #172d4914; }
+    h1 { margin: 0 0 9px; font-size: 24px; line-height: 1.3; }
+    .subtitle { color: #587087; margin: 0 0 26px; }
+    label { display: block; margin: 16px 0 7px; font-size: 14px; font-weight: 700; }
+    input { display: block; width: 100%; padding: 13px; border: 1px solid #c5d3df; border-radius: 8px; font-size: 15px; }
+    input:focus { outline: 3px solid #b7dfeb; border-color: #147a9a; }
+    button, .dashboard-link { display: block; width: 100%; padding: 13px 16px; border: 0; border-radius: 8px; font-size: 15px; font-weight: 700; text-align: center; text-decoration: none; cursor: pointer; }
+    button:disabled { cursor: wait; opacity: .65; }
+    .primary { background: #1681a0; color: #fff; margin-top: 22px; }
+    .secondary { background: #ecf2f7; color: #17304d; margin-top: 10px; }
+    .dashboard-link { background: #17304d; color: #fff; margin-top: 20px; }
+    #status { margin: 18px 0 0; font-size: 14px; line-height: 1.5; min-height: 20px; }
+    #status[data-kind="error"] { color: #a62828; }
+    #status[data-kind="success"] { color: #147147; }
+    .info { line-height: 1.6; overflow-wrap: anywhere; }
+    [hidden] { display: none !important; }
   </style>
 </head>
-
 <body>
-  <div class="login-box">
-
-    <h2>Digital Production Request</h2>
-    <p>Staff & Logistic Login</p>
+  <main class="card">
+    <h1>Digital Production Request</h1>
+    <p class="subtitle">Staff &amp; Logistic Login</p>
 
     <form id="loginForm">
       <label for="email">Email Address</label>
-      <input type="email" id="email"
-             autocomplete="username" required>
+      <input type="email" id="email" autocomplete="username" required>
 
       <label for="password">Password</label>
-      <input type="password" id="password"
-             autocomplete="current-password" required>
+      <input type="password" id="password" autocomplete="current-password" required>
 
-      <button type="submit" id="loginButton">
-        Login
-      </button>
+      <button class="primary" type="submit" id="loginButton" disabled>Login</button>
     </form>
 
-   
+    <section id="signedInPanel" hidden>
+      <h2>Login Successful</h2>
+      <p class="info" id="userInfo"></p>
+      <a class="dashboard-link" href="index.html">Go to Dashboard</a>
+      <button class="secondary" type="button" id="logoutButton">Logout</button>
+    </section>
 
-</div>
+    <p id="status" role="status" aria-live="polite"></p>
+  </main>
 
+  <!-- Browser-compatible Supabase library -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
   <script>
-    // REPLACE WITH YOUR OWN SUPABASE DETAILS
+    "use strict";
 
-    const projectUrl = "https://swyzpswrncaghdfnphhc.supabase.co";
-    const publishableKey = "sb_publishable_Rek9NATddqXIwNN0UQ6cUw_Iuh5aRoE";
+    // IMPORTANT: Only use the PUBLISHABLE key. Never use sb_secret_ / service_role.
+    const SUPABASE_URL = "https://swyzpswrncaghdfnphhc.supabase.co";
+    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_Rek9NATddqXIwNN0UQ6cUw_Iuh5aRoE";
 
-    const db = window.supabase.createClient(
-      projectUrl,
-      publishableKey
-    );
+    const el = {
+      form: document.getElementById("loginForm"),
+      email: document.getElementById("email"),
+      password: document.getElementById("password"),
+      login: document.getElementById("loginButton"),
+      panel: document.getElementById("signedInPanel"),
+      userInfo: document.getElementById("userInfo"),
+      logout: document.getElementById("logoutButton"),
+      status: document.getElementById("status")
+    };
 
-    const form = document.getElementById("loginForm");
-  const message = document.getElementById("message");
-    const userPanel = document.getElementById("userPanel");
-    const userInfo = document.getElementById("userInfo");
-    const loginButton = document.getElementById("loginButton");
+    function setStatus(message, kind = "") {
+      el.status.textContent = message;
+      el.status.dataset.kind = kind;
+    }
 
-    async function showUser(user) {
-      const { data, error } = await db
-        .from("profiles")
-        .select("role, staff_id, full_name")
-        .eq("id", user.id)
-        .single();
+    function showLogin() {
+      el.form.hidden = false;
+      el.panel.hidden = true;
+      el.password.value = "";
+    }
 
-      if (error) {
-        message.textContent = "Profile error: " + error.message;
+    function showSignedIn(user, role) {
+      el.form.hidden = true;
+      el.panel.hidden = false;
+      el.userInfo.textContent = `Email: ${user.email || "(not available)"} | Role: ${role}`;
+    }
+
+    async function start() {
+      // These checks prevent "Cannot set properties of null" failures.
+      if (Object.values(el).some((node) => !node)) {
+        console.error("Login HTML is missing one or more required element IDs.");
         return;
       }
 
-      form.style.display = "none";
-      userPanel.style.display = "block";
-
-      userInfo.textContent =
-        "Email: " + user.email +
-        " | Role: " + data.role;
-
-      message.textContent = "";
-    }
-
-    form.addEventListener("submit", async function (event) {
-      event.preventDefault();
-
-      loginButton.disabled = true;
-      message.textContent = "Checking login...";
-
-      try {
-        const email = document.getElementById("email").value;
-        const password = document.getElementById("password").value;
-
-        const { data, error } = await db.auth.signInWithPassword({
-          email: email,
-          password: password
-        });
-
-        if (error) {
-          message.textContent = error.message;
-          return;
-        }
-
-        await showUser(data.user);
-
-      } catch (error) {
-        message.textContent = "Login error: " + error.message;
-      } finally {
-        loginButton.disabled = false;
+      if (!window.supabase || typeof window.supabase.createClient !== "function") {
+        setStatus("Supabase library could not load. Check the internet connection.", "error");
+        return;
       }
-    });
 
-    document.getElementById("logoutButton")
-      .addEventListener("click", async function () {
-        const { error } = await db.auth.signOut();
+      if (!SUPABASE_PUBLISHABLE_KEY.startsWith("sb_publishable_")) {
+        setStatus("Set the Supabase Publishable key in login.html first.", "error");
+        return;
+      }
 
-        if (error) {
-          message.textContent = error.message;
-          return;
+      const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+      async function readRole(userId) {
+        const { data, error } = await db.from("profiles")
+          .select("role").eq("id", userId).maybeSingle();
+        if (error) throw new Error("Cannot read profile: " + error.message);
+        if (!data) throw new Error("No profile found for this user.");
+        return data.role;
+      }
+
+      async function displayUser(user) {
+        const role = await readRole(user.id);
+        showSignedIn(user, role);
+        setStatus("Account verified.", "success");
+      }
+
+      el.login.disabled = false;
+      el.form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (!el.form.reportValidity()) return;
+        el.login.disabled = true;
+        setStatus("Signing in...");
+
+        try {
+          const { data, error } = await db.auth.signInWithPassword({
+            email: el.email.value.trim(),
+            password: el.password.value
+          });
+          if (error) throw error;
+          if (!data.user) throw new Error("Login did not return a user.");
+          await displayUser(data.user);
+          // After a NEW successful login, enter the dashboard automatically.
+          window.location.assign("index.html");
+        } catch (error) {
+          setStatus(error.message || "Login failed. Please try again.", "error");
+        } finally {
+          el.login.disabled = false;
         }
-
-        userPanel.style.display = "none";
-        form.style.display = "block";
-        form.reset();
-        message.textContent = "Logged out successfully.";
       });
 
-    async function checkSession() {
+      el.logout.addEventListener("click", async () => {
+        el.logout.disabled = true;
+        setStatus("Signing out...");
+        try {
+          const { error } = await db.auth.signOut();
+          if (error) throw error;
+          showLogin();
+          setStatus("Logged out successfully.", "success");
+        } catch (error) {
+          setStatus(error.message || "Logout failed.", "error");
+        } finally {
+          el.logout.disabled = false;
+        }
+      });
+
+      // When opening login.html while already logged in, show a way to log out.
       try {
         const { data, error } = await db.auth.getUser();
-
-        if (error || !data.user) return;
-
-        await showUser(data.user);
+        if (!error && data.user) await displayUser(data.user);
+        else { showLogin(); setStatus(""); }
       } catch (error) {
-        message.textContent = "Connection error: " + error.message;
+        showLogin();
+        setStatus(error.message || "Could not verify existing session.", "error");
       }
     }
 
-    checkSession();
+    start().catch((error) => {
+      console.error("Login initialization failed:", error);
+      if (el.status) setStatus("Unexpected login error. Please refresh.", "error");
+    });
   </script>
 </body>
 </html>
