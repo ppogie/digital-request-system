@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Logistic Approval | Digital Production Request</title>
+  <style>
+    :root { color-scheme: light; font-family: Arial, sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f1f5f9; color: #19304d; }
+    header { padding: 24px max(20px, calc((100vw - 1100px) / 2)); background: #142d4e; color: white; }
+    header h1 { margin: 0 0 6px; font-size: 24px; }
+    header p { margin: 0; opacity: .85; }
+    main { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
+    .card { background: white; border-radius: 14px; padding: 24px; box-shadow: 0 6px 24px #19304d0d; }
+    .topline { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+    h2 { margin: 0 0 12px; font-size: 22px; }
+    a { color: #0e7898; }
+    .message { padding: 12px 14px; margin: 12px 0; border-radius: 7px; background: #eaf3fa; }
+    .message.error { color: #8b2020; background: #fceaea; }
+    .table-wrap { overflow-x: auto; margin-top: 20px; }
+    table { width: 100%; border-collapse: collapse; min-width: 680px; }
+    th, td { text-align: left; padding: 13px 10px; border-bottom: 1px solid #e3e9f1; }
+    th { background: #142d4e; color: #fff; font-size: 14px; }
+    td { font-size: 14px; }
+    .badge { padding: 5px 8px; border-radius: 20px; background: #edf2f6; white-space: nowrap; }
+    .badge.approved { background: #dff5e9; color: #17633e; }
+    .badge.rejected { background: #fbe1e1; color: #9d2323; }
+    button { border: 0; padding: 9px 12px; border-radius: 7px; font-weight: bold; cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: .5; }
+    .approve { background: #187b4c; color: #fff; }
+    .reject { background: #b53b3b; color: #fff; }
+    .refresh { background: #e5edf5; color: #18334f; }
+    .actions { display: flex; gap: 7px; white-space: nowrap; }
+    .muted { color: #576779; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Digital Production Request</h1>
+    <p>Logistic Approval</p>
+  </header>
+  <main>
+    <div class="card">
+      <div class="topline">
+        <div>
+          <h2>Request Approval</h2>
+          <p class="muted" id="accountInfo">Checking login...</p>
+        </div>
+        <div>
+          <a href="index.html">Dashboard</a>
+          <button class="refresh" type="button" id="refreshButton" disabled>Refresh</button>
+        </div>
+      </div>
+      <p id="message" class="message" role="status" aria-live="polite">Checking access...</p>
+      <div class="table-wrap" id="tableWrap" hidden>
+        <table>
+          <thead>
+            <tr>
+              <th>Request ID</th>
+              <th>Date</th>
+              <th>Staff ID</th>
+              <th>Product Model</th>
+              <th>Qty</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="requestRows"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    "use strict";
+
+    // Project URL is public. Never use a secret/service_role key in this page.
+    const SUPABASE_URL = "https://swyzpswrncaghdfnphhc.supabase.co";
+    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_Rek9NATddqXIwNN0UQ6cUw_Iuh5aRoE";
+
+    const message = document.getElementById("message");
+    const accountInfo = document.getElementById("accountInfo");
+    const rows = document.getElementById("requestRows");
+    const tableWrap = document.getElementById("tableWrap");
+    const refreshButton = document.getElementById("refreshButton");
+    let db;
+    let busy = false;
+
+    function showMessage(text, isError = false) {
+      message.textContent = text;
+      message.classList.toggle("error", isError);
+    }
+
+    function createCell(tr, value) {
+      const td = document.createElement("td");
+      td.textContent = String(value ?? "");
+      tr.appendChild(td);
+      return td;
+    }
+
+    function renderRequests(requests) {
+      rows.replaceChildren();
+      tableWrap.hidden = requests.length === 0;
+      if (requests.length === 0) {
+        showMessage("No requests found.");
+        return;
+      }
+
+      requests.forEach((request) => {
+        const tr = document.createElement("tr");
+        createCell(tr, request.request_id);
+        createCell(tr, request.request_date);
+        createCell(tr, request.staff_id);
+        createCell(tr, request.product_model);
+        createCell(tr, request.production_quantity);
+        const statusTd = createCell(tr, "");
+        const badge = document.createElement("span");
+        badge.className = "badge " + String(request.status).toLowerCase();
+        badge.textContent = request.status;
+        statusTd.appendChild(badge);
+
+        const actionsTd = createCell(tr, "");
+        if (request.status === "Pending") {
+          const actionBox = document.createElement("div");
+          actionBox.className = "actions";
+          [["Approved", "Approve", "approve"], ["Rejected", "Reject", "reject"]]
+            .forEach(([nextStatus, label, className]) => {
+              const button = document.createElement("button");
+              button.type = "button";
+              button.textContent = label;
+              button.className = className;
+              button.addEventListener("click", () => updateRequest(request, nextStatus));
+              actionBox.appendChild(button);
+            });
+          actionsTd.appendChild(actionBox);
+        } else {
+          actionsTd.textContent = "Completed";
+        }
+        rows.appendChild(tr);
+      });
+      showMessage(`Showing ${requests.length} request(s).`);
+    }
+
+    async function loadRequests() {
+      if (busy) return;
+      showMessage("Loading requests...");
+      refreshButton.disabled = true;
+      try {
+        const { data, error } = await db
+          .from("requests")
+          .select("id, request_id, request_date, staff_id, product_model, production_quantity, status")
+          .order("created_at", { ascending: false });
+        if (error) throw error;
+        renderRequests(data || []);
+      } catch (error) {
+        showMessage("Could not load requests: " + error.message, true);
+      } finally {
+        refreshButton.disabled = false;
+      }
+    }
+
+    async function updateRequest(request, nextStatus) {
+      if (busy) return;
+      if (!confirm(`${nextStatus === "Approved" ? "Approve" : "Reject"} request ${request.request_id}?`)) return;
+      busy = true;
+      refreshButton.disabled = true;
+      showMessage("Saving decision...");
+      try {
+        const { data, error } = await db
+          .from("requests")
+          .update({ status: nextStatus })
+          .eq("id", request.id)
+          .eq("status", "Pending")
+          .select("id, status");
+        if (error) throw error;
+        if (!data || data.length !== 1) {
+          throw new Error("No pending request was updated. Check database permissions or current status.");
+        }
+        showMessage(`Request ${request.request_id} ${nextStatus.toLowerCase()}.`);
+      } catch (error) {
+        showMessage("Approval failed: " + error.message, true);
+        busy = false;
+        refreshButton.disabled = false;
+        return;
+      }
+      busy = false;
+      await loadRequests();
+    }
+
+    async function start() {
+      if (!window.supabase) {
+        showMessage("Supabase library failed to load. Check your internet connection.", true);
+        return;
+      }
+      if (SUPABASE_PUBLISHABLE_KEY.startsWith("PASTE_YOUR_")) {
+        showMessage("Add your Supabase publishable key to logistic.html first.", true);
+        return;
+      }
+      db = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+      try {
+        const { data: userData, error: userError } = await db.auth.getUser();
+        if (userError || !userData.user) {
+          window.location.replace("login.html");
+          return;
+        }
+        const { data: profile, error: profileError } = await db
+          .from("profiles")
+          .select("role")
+          .eq("id", userData.user.id)
+          .single();
+        if (profileError) throw profileError;
+        if (profile.role !== "Logistic") {
+          accountInfo.textContent = "Role: " + profile.role;
+          showMessage("Access denied. This page is for Logistic users only.", true);
+          return;
+        }
+        accountInfo.textContent = "Logged in: " + userData.user.email + " | Role: Logistic";
+        refreshButton.addEventListener("click", loadRequests);
+        await loadRequests();
+      } catch (error) {
+        showMessage("Could not verify access: " + error.message, true);
+      }
+    }
+
+    start();
+  </script>
+</body>
+</html>
