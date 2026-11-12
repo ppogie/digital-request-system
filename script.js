@@ -32,7 +32,76 @@ document.addEventListener("DOMContentLoaded", function () {
   form.after(list);
 
   // Display submitted requests
-  function displayRequests() {
+ 
+function displayRequests() {
+  list.replaceChildren();
+
+  const heading = document.createElement("h3");
+  heading.textContent = "Request History";
+  list.appendChild(heading);
+
+  if (requests.length === 0) {
+    const empty = document.createElement("p");
+    empty.textContent = "No requests found.";
+    list.appendChild(empty);
+    return;
+  }
+
+  const container = document.createElement("div");
+  container.className = "table-container";
+
+  const table = document.createElement("table");
+  table.className = "request-table";
+
+  const headers = [
+    "Request ID",
+    "Date",
+    "Staff ID",
+    "Product Model",
+    "Quantity",
+    "Status"
+  ];
+
+  const thead = document.createElement("thead");
+  const headerRow = document.createElement("tr");
+
+  headers.forEach(function (title) {
+    const th = document.createElement("th");
+    th.textContent = title;
+    headerRow.appendChild(th);
+  });
+
+  thead.appendChild(headerRow);
+  table.appendChild(thead);
+
+  const tbody = document.createElement("tbody");
+
+  requests.slice().reverse().forEach(function (r) {
+    const tr = document.createElement("tr");
+
+    const values = [
+      r.requestId,
+      r.requestDate,
+      r.staffId,
+      r.productModel,
+      r.quantity,
+      r.status
+    ];
+
+    values.forEach(function (value) {
+      const td = document.createElement("td");
+      td.textContent = value ?? "";
+      tr.appendChild(td);
+    });
+
+    tbody.appendChild(tr);
+  });
+
+  table.appendChild(tbody);
+  container.appendChild(table);
+  list.appendChild(container);
+}
+
     list.replaceChildren();
 
     const heading = document.createElement("h3");
