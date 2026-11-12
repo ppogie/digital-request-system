@@ -1,0 +1,119 @@
+
+document.addEventListener("DOMContentLoaded", function () {
+
+  const form = document.getElementById("requestForm");
+  const button = document.getElementById("submitRequest");
+
+  if (!form || !button) return;
+
+  const STORAGE_KEY = "productionRequestsDemo";
+
+  // Load saved requests
+  function loadRequests() {
+    try {
+      const data = JSON.parse(
+        localStorage.getItem(STORAGE_KEY) || "[]"
+      );
+      return Array.isArray(data) ? data : [];
+    } catch {
+      return [];
+    }
+  }
+
+  let requests = loadRequests();
+
+  // Create request list
+  const list = document.createElement("div");
+  list.id = "requestList";
+  form.after(list);
+
+  function displayRequests() {
+    list.replaceChildren();
+
+    const heading = document.createElement("h3");
+    heading.textContent = "My Requests (Demo)";
+    list.appendChild(heading);
+
+    if (requests.length === 0) {
+      const empty = document.createElement("p");
+      empty.textContent = "No requests submitted yet.";
+      list.appendChild(empty);
+      return;
+    }
+
+    const ul = document.createElement("ul");
+
+    requests.slice().reverse().forEach(function (r) {
+      const li = document.createElement("li");
+
+      li.textContent =
+        r.requestId + " | " +
+        r.productModel + " | Qty: " +
+        r.quantity + " | " + r.status;
+
+      ul.appendChild(li);
+    });
+
+    list.appendChild(ul);
+  }
+
+  // Enable Submit button
+  button.disabled = false;
+
+  button.addEventListener("click", function () {
+
+    if (!form.reportValidity()) return;
+
+    const request = {
+      requestId: document.getElementById("requestId").value.trim(),
+      requestDate: document.getElementById("requestDate").value,
+      staffId: document.getElementById("staffId").value.trim(),
+      productModel: document.getElementById("productModel").value.trim(),
+      quantity: Number(
+        document.getElementById("productionQuantity").value
+      ),
+      remarks: document.getElementById("remarks").value.trim(),
+      status: "Pending"
+    };
+
+    if (!request.requestId ||
+        !request.staffId ||
+        !request.productModel) {
+      alert("Please complete all required fields.");
+      return;
+    }
+
+    // Prevent duplicate Request ID
+    const duplicate = requests.some(
+      r => r.requestId.toLowerCase() ===
+           request.requestId.toLowerCase()
+    );
+
+    if (duplicate) {
+      alert("Request ID already exists!");
+      return;
+    }
+
+    // Save request in browser
+    const updated = [...requests, request];
+
+    try {
+      localStorage.setItem(
+        STORAGE_KEY, JSON.stringify(updated)
+      );
+    } catch {
+      alert("Unable to save request in this browser.");
+      return;
+    }
+
+    requests = updated;
+
+    alert("Request submitted successfully!");
+
+    form.reset();
+    displayRequests();
+  });
+
+  displayRequests();
+
+});
