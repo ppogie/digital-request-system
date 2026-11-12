@@ -8,8 +8,24 @@
   <title>Login | Digital Production Request</title>
 
   <style>
-    * {
-      box-sizing: border-box;
+   
+.dashboard-link {
+  display: block;
+  margin-top: 20px;
+  padding: 13px;
+  background: #142d4e;
+  color: white;
+  text-align: center;
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.dashboard-link:hover {
+  background: #187f9d;
+}
+
     }
 
     body {
@@ -105,15 +121,17 @@
       </button>
     </form>
 
-    <div id="userPanel">
-      <h3>Login Successful</h3>
-      <p id="userInfo"></p>
-      <button id="logoutButton">Logout</button>
-    </div>
+   
+<div id="userPanel">
+  <h3>Login Successful</h3>
+  <p id="userInfo"></p>
 
-    <p id="message"></p>
+  <a href="index.html" class="dashboard-link">
+    Go to Dashboard
+  </a>
 
-  </div>
+  <button id="logoutButton">Logout</button>
+</div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
