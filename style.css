@@ -228,3 +228,37 @@ section h2 {
     width: 100%;
   }
 }
+
+/* REQUEST HISTORY */
+
+#requestList {
+  margin-top: 35px;
+}
+
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.request-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+  font-size: 14px;
+}
+
+.request-table th {
+  background: #142d4e;
+  color: white;
+  padding: 14px;
+  text-align: left;
+}
+
+.request-table td {
+  padding: 13px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.request-table tbody tr:hover {
+  background: #f1f7fb;
+}
