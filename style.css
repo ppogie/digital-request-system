@@ -145,3 +145,86 @@ section h2 {
     padding: 20px;
   }
 }
+
+/* CREATE REQUEST FORM */
+
+#requestForm {
+  max-width: 650px;
+  margin-top: 25px;
+}
+
+#requestForm br {
+  display: none;
+}
+
+#requestForm label {
+  display: block;
+  margin-top: 18px;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #243449;
+}
+
+#requestForm input,
+#requestForm textarea {
+  display: block;
+  width: 100%;
+  padding: 13px;
+  border: 1px solid #ccd5e0;
+  border-radius: 8px;
+  font-size: 15px;
+  font-family: Arial, sans-serif;
+  background: #f9fbfd;
+}
+
+#requestForm input:focus,
+#requestForm textarea:focus {
+  outline: none;
+  border-color: #187f9d;
+  box-shadow: 0 0 0 3px #187f9d20;
+  background: white;
+}
+
+#requestForm textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+#requestForm p {
+  margin-top: 22px;
+  font-size: 15px;
+}
+
+/* SUBMIT BUTTON */
+
+#submitRequest {
+  background: #187f9d;
+  color: white;
+  padding: 13px 28px;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+#submitRequest:hover:not(:disabled) {
+  background: #12657e;
+}
+
+#submitRequest:disabled {
+  background: #aab7c4;
+  cursor: not-allowed;
+}
+
+/* MOBILE */
+
+@media (max-width: 768px) {
+  #requestForm {
+    max-width: 100%;
+  }
+
+  #submitRequest {
+    width: 100%;
+  }
+}
