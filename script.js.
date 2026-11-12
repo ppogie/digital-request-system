@@ -4,7 +4,10 @@ document.addEventListener("DOMContentLoaded", function () {
   const form = document.getElementById("requestForm");
   const button = document.getElementById("submitRequest");
 
-  if (!form || !button) return;
+  if (!form || !button) {
+    console.error("Request form or button not found.");
+    return;
+  }
 
   const STORAGE_KEY = "productionRequestsDemo";
 
@@ -15,7 +18,8 @@ document.addEventListener("DOMContentLoaded", function () {
         localStorage.getItem(STORAGE_KEY) || "[]"
       );
       return Array.isArray(data) ? data : [];
-    } catch {
+    } catch (error) {
+      console.error("Unable to load requests:", error);
       return [];
     }
   }
@@ -27,6 +31,7 @@ document.addEventListener("DOMContentLoaded", function () {
   list.id = "requestList";
   form.after(list);
 
+  // Display submitted requests
   function displayRequests() {
     list.replaceChildren();
 
@@ -47,9 +52,10 @@ document.addEventListener("DOMContentLoaded", function () {
       const li = document.createElement("li");
 
       li.textContent =
-        r.requestId + " | " +
-        r.productModel + " | Qty: " +
-        r.quantity + " | " + r.status;
+        "Request ID: " + r.requestId +
+        " | Model: " + r.productModel +
+        " | Quantity: " + r.quantity +
+        " | Status: " + r.status;
 
       ul.appendChild(li);
     });
@@ -57,13 +63,18 @@ document.addEventListener("DOMContentLoaded", function () {
     list.appendChild(ul);
   }
 
-  // Enable Submit button
+  // Enable Submit Request button
   button.disabled = false;
 
+  // Handle request submission
   button.addEventListener("click", function () {
 
-    if (!form.reportValidity()) return;
+    // Check required fields
+    if (!form.reportValidity()) {
+      return;
+    }
 
+    // Collect request data
     const request = {
       requestId: document.getElementById("requestId").value.trim(),
       requestDate: document.getElementById("requestDate").value,
@@ -76,44 +87,59 @@ document.addEventListener("DOMContentLoaded", function () {
       status: "Pending"
     };
 
-    if (!request.requestId ||
-        !request.staffId ||
-        !request.productModel) {
-      alert("Please complete all required fields.");
+    // Additional validation
+    if (
+      !request.requestId ||
+      !request.requestDate ||
+      !request.staffId ||
+      !request.productModel ||
+      !Number.isInteger(request.quantity) ||
+      request.quantity < 1
+    ) {
+      alert("Please complete all required fields correctly.");
       return;
     }
 
-    // Prevent duplicate Request ID
-    const duplicate = requests.some(
-      r => r.requestId.toLowerCase() ===
-           request.requestId.toLowerCase()
-    );
+    // Check duplicate Request ID
+    const duplicate = requests.some(function (r) {
+      return r.requestId.toLowerCase() ===
+             request.requestId.toLowerCase();
+    });
 
     if (duplicate) {
-      alert("Request ID already exists!");
+      alert("Request ID already exists. Please use another ID.");
       return;
     }
 
-    // Save request in browser
-    const updated = [...requests, request];
+    // Save request to browser storage
+    const updatedRequests = [...requests, request];
 
     try {
       localStorage.setItem(
-        STORAGE_KEY, JSON.stringify(updated)
+        STORAGE_KEY,
+        JSON.stringify(updatedRequests)
       );
-    } catch {
-      alert("Unable to save request in this browser.");
+    } catch (error) {
+      console.error("Save failed:", error);
+      alert("Unable to save request.");
       return;
     }
 
-    requests = updated;
+    requests = updatedRequests;
 
+    // Show success message
     alert("Request submitted successfully!");
 
+    // Clear form
     form.reset();
+
+    // Refresh request list
     displayRequests();
   });
 
+  // Show existing requests when page loads
   displayRequests();
+
+  console.log("Production Request System loaded successfully.");
 
 });
