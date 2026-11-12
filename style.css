@@ -1,0 +1,147 @@
+
+/* DIGITAL PRODUCTION REQUEST SYSTEM */
+
+:root {
+  --primary: #142d4e;
+  --secondary: #187f9d;
+  --background: #f2f5fa;
+  --white: #ffffff;
+  --text: #243449;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: var(--background);
+  color: var(--text);
+
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+/* HEADER */
+
+header {
+  grid-column: 1 / -1;
+  padding: 25px 35px;
+  background: linear-gradient(
+    120deg, #142d4e, #187f9d
+  );
+  color: white;
+}
+
+header h1 {
+  font-size: 26px;
+  margin: 0 0 8px;
+}
+
+header p {
+  margin: 0;
+  opacity: 0.85;
+}
+
+/* SIDEBAR */
+
+nav {
+  background: var(--primary);
+  padding: 25px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+nav a {
+  color: #e7edf5;
+  text-decoration: none;
+  padding: 14px 16px;
+  border-radius: 9px;
+  font-size: 15px;
+  transition: 0.2s;
+}
+
+nav a:hover,
+nav a:focus {
+  background: var(--secondary);
+  color: white;
+}
+
+/* MAIN CONTENT */
+
+main {
+  padding: 30px;
+  min-width: 0;
+}
+
+section {
+  background: white;
+  padding: 25px;
+  margin-bottom: 25px;
+  border-radius: 14px;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.05);
+}
+
+section h2 {
+  color: var(--primary);
+  margin-top: 0;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e9eef5;
+}
+
+/* DASHBOARD STATISTICS */
+
+#dashboard h3 {
+  margin-top: 28px;
+}
+
+#dashboard p:nth-of-type(n+3) {
+  padding: 18px;
+  background: #edf6fa;
+  border-left: 5px solid var(--secondary);
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+/* MOBILE RESPONSIVE */
+
+@media (max-width: 768px) {
+  body {
+    display: block;
+  }
+
+  header {
+    padding: 22px;
+  }
+
+  header h1 {
+    font-size: 21px;
+  }
+
+  nav {
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 12px;
+  }
+
+  nav a {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  main {
+    padding: 16px;
+  }
+
+  section {
+    padding: 20px;
+  }
+}
