@@ -33,10 +33,59 @@
       <p>Rejected Requests: 0</p>
     </section>
 
-    <section id="request">
-      <h2>Create Request</h2>
-      <p>Production request form will appear here.</p>
-    </section>
+    
+<section id="request">
+  <h2>Create Production Request</h2>
+  <p>Fill in the details below to request materials.</p>
+
+  <form id="requestForm">
+
+    <label for="requestId">Request ID</label>
+    <input type="text" id="requestId"
+           placeholder="Example: REQ001" required>
+
+    <br><br>
+
+    <label for="requestDate">Request Date</label>
+    <input type="date" id="requestDate" required>
+
+    <br><br>
+
+    <label for="staffId">Staff ID</label>
+    <input type="text" id="staffId"
+           placeholder="Enter Staff ID" required>
+
+    <br><br>
+
+    <label for="productModel">Product Model</label>
+    <input type="text" id="productModel"
+           placeholder="Enter Product Model" required>
+
+    <br><br>
+
+    <label for="productionQuantity">
+      Production Quantity
+    </label>
+    <input type="number" id="productionQuantity"
+           min="1" step="1" required>
+
+    <br><br>
+
+    <label for="remarks">Remarks</label>
+    <textarea id="remarks" rows="4"
+              placeholder="Enter remarks"></textarea>
+
+    <br><br>
+
+    <p>Request Status: <strong>Pending</strong></p>
+
+    <button type="button" id="submitRequest" disabled>
+      Submit Request
+    </button>
+
+  </form>
+</section>
+
 
     <section id="approval">
       <h2>Logistic Approval</h2>
