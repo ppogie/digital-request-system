@@ -1,149 +1,113 @@
 
 document.addEventListener("DOMContentLoaded", function () {
-
   const form = document.getElementById("requestForm");
   const button = document.getElementById("submitRequest");
 
   if (!form || !button) {
-    console.error("Request form or button not found.");
+    console.error("Request form or Submit button not found.");
     return;
   }
 
   const STORAGE_KEY = "productionRequestsDemo";
 
-  // Load saved requests
   function loadRequests() {
     try {
-      const data = JSON.parse(
+      const saved = JSON.parse(
         localStorage.getItem(STORAGE_KEY) || "[]"
       );
-      return Array.isArray(data) ? data : [];
+      return Array.isArray(saved) ? saved : [];
     } catch (error) {
-      console.error("Unable to load requests:", error);
+      console.error("Could not load requests:", error);
       return [];
     }
   }
 
   let requests = loadRequests();
 
-  // Create request list
   const list = document.createElement("div");
   list.id = "requestList";
   form.after(list);
 
-  // Display submitted requests
- 
-function displayRequests() {
-  list.replaceChildren();
+  // DISPLAY REQUEST HISTORY
 
-  const heading = document.createElement("h3");
-  heading.textContent = "Request History";
-  list.appendChild(heading);
-
-  if (requests.length === 0) {
-    const empty = document.createElement("p");
-    empty.textContent = "No requests found.";
-    list.appendChild(empty);
-    return;
-  }
-
-  const container = document.createElement("div");
-  container.className = "table-container";
-
-  const table = document.createElement("table");
-  table.className = "request-table";
-
-  const headers = [
-    "Request ID",
-    "Date",
-    "Staff ID",
-    "Product Model",
-    "Quantity",
-    "Status"
-  ];
-
-  const thead = document.createElement("thead");
-  const headerRow = document.createElement("tr");
-
-  headers.forEach(function (title) {
-    const th = document.createElement("th");
-    th.textContent = title;
-    headerRow.appendChild(th);
-  });
-
-  thead.appendChild(headerRow);
-  table.appendChild(thead);
-
-  const tbody = document.createElement("tbody");
-
-  requests.slice().reverse().forEach(function (r) {
-    const tr = document.createElement("tr");
-
-    const values = [
-      r.requestId,
-      r.requestDate,
-      r.staffId,
-      r.productModel,
-      r.quantity,
-      r.status
-    ];
-
-    values.forEach(function (value) {
-      const td = document.createElement("td");
-      td.textContent = value ?? "";
-      tr.appendChild(td);
-    });
-
-    tbody.appendChild(tr);
-  });
-
-  table.appendChild(tbody);
-  container.appendChild(table);
-  list.appendChild(container);
-}
-
+  function displayRequests() {
     list.replaceChildren();
 
     const heading = document.createElement("h3");
-    heading.textContent = "My Requests (Demo)";
+    heading.textContent = "Request History";
     list.appendChild(heading);
 
     if (requests.length === 0) {
       const empty = document.createElement("p");
-      empty.textContent = "No requests submitted yet.";
+      empty.textContent = "No requests found.";
       list.appendChild(empty);
       return;
     }
 
-    const ul = document.createElement("ul");
+    const container = document.createElement("div");
+    container.className = "table-container";
 
-    requests.slice().reverse().forEach(function (r) {
-      const li = document.createElement("li");
+    const table = document.createElement("table");
+    table.className = "request-table";
 
-      li.textContent =
-        "Request ID: " + r.requestId +
-        " | Model: " + r.productModel +
-        " | Quantity: " + r.quantity +
-        " | Status: " + r.status;
+    const headers = [
+      "Request ID",
+      "Date",
+      "Staff ID",
+      "Product Model",
+      "Quantity",
+      "Status"
+    ];
 
-      ul.appendChild(li);
+    const thead = document.createElement("thead");
+    const headerRow = document.createElement("tr");
+
+    headers.forEach(function (title) {
+      const th = document.createElement("th");
+      th.textContent = title;
+      headerRow.appendChild(th);
     });
 
-    list.appendChild(ul);
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    const tbody = document.createElement("tbody");
+
+    requests.slice().reverse().forEach(function (request) {
+      const tr = document.createElement("tr");
+
+      const values = [
+        request.requestId,
+        request.requestDate,
+        request.staffId,
+        request.productModel,
+        request.quantity,
+        request.status
+      ];
+
+      values.forEach(function (value) {
+        const td = document.createElement("td");
+        td.textContent = String(value ?? "");
+        tr.appendChild(td);
+      });
+
+      tbody.appendChild(tr);
+    });
+
+    table.appendChild(tbody);
+    container.appendChild(table);
+    list.appendChild(container);
   }
 
-  // Enable Submit Request button
+  // ENABLE SUBMIT BUTTON
+
   button.disabled = false;
 
-  // Handle request submission
+  // SUBMIT REQUEST
+
   button.addEventListener("click", function () {
+    if (!form.reportValidity()) return;
 
-    // Check required fields
-    if (!form.reportValidity()) {
-      return;
-    }
-
-    // Collect request data
     const request = {
       requestId: document.getElementById("requestId").value.trim(),
       requestDate: document.getElementById("requestDate").value,
@@ -156,7 +120,8 @@ function displayRequests() {
       status: "Pending"
     };
 
-    // Additional validation
+    // VALIDATION
+
     if (
       !request.requestId ||
       !request.requestDate ||
@@ -169,46 +134,43 @@ function displayRequests() {
       return;
     }
 
-    // Check duplicate Request ID
-    const duplicate = requests.some(function (r) {
-      return r.requestId.toLowerCase() ===
+    // CHECK DUPLICATE ID
+
+    const duplicate = requests.some(function (saved) {
+      return String(saved.requestId).toLowerCase() ===
              request.requestId.toLowerCase();
     });
 
     if (duplicate) {
-      alert("Request ID already exists. Please use another ID.");
+      alert("Request ID already exists. Use another ID.");
       return;
     }
 
-    // Save request to browser storage
-    const updatedRequests = [...requests, request];
+    // SAVE REQUEST
+
+    const updated = [...requests, request];
 
     try {
       localStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify(updatedRequests)
+        JSON.stringify(updated)
       );
     } catch (error) {
-      console.error("Save failed:", error);
-      alert("Unable to save request.");
+      console.error("Saving failed:", error);
+      alert("Unable to save request in this browser.");
       return;
     }
 
-    requests = updatedRequests;
+    requests = updated;
 
-    // Show success message
-    alert("Request submitted successfully!");
-
-    // Clear form
     form.reset();
-
-    // Refresh request list
     displayRequests();
+
+    alert("Request submitted successfully!");
   });
 
-  // Show existing requests when page loads
+  // INITIAL DISPLAY
+
   displayRequests();
-
-  console.log("Production Request System loaded successfully.");
-
 });
+
