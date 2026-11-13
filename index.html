@@ -542,6 +542,28 @@
 
         </div>
 
+<!-- REQUEST HISTORY FILTERS -->
+
+<div class="history-toolbar">
+
+  <input
+    type="search"
+    id="requestSearch"
+    placeholder="Search Request ID, Staff ID or Model..."
+    aria-label="Search production requests">
+
+  <select id="requestStatusFilter"
+          aria-label="Filter by request status">
+
+    <option value="All">All Status</option>
+    <option value="Pending">Pending</option>
+    <option value="Approved">Approved</option>
+    <option value="Rejected">Rejected</option>
+
+  </select>
+
+</div>
+
         <div id="requestList"></div>
 
       </section>
