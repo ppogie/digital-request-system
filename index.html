@@ -536,5 +536,33 @@
 
 <script defer src="script.js"></script>
 
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+
+    function updateActiveMenu() {
+      const current = window.location.hash || "#dashboard";
+
+      document.querySelectorAll(
+        ".sidebar-nav a"
+      ).forEach(function (link) {
+
+        link.classList.toggle(
+          "active",
+          link.getAttribute("href") === current
+        );
+
+      });
+    }
+
+    updateActiveMenu();
+
+    window.addEventListener(
+      "hashchange",
+      updateActiveMenu
+    );
+
+  });
+</script>
+
 </body>
 </html>
