@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Material Issuing | Digital Production Request</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Arial, sans-serif; color: #243449; background: #f2f5fa; }
+    header { background: #142d4e; color: white; padding: 22px 5%; }
+    header h1 { margin: 0 0 7px; font-size: 24px; }
+    nav { display: flex; gap: 15px; margin-top: 14px; flex-wrap: wrap; }
+    nav a, nav button { color: white; background: none; border: 0; padding: 0; font: inherit; cursor: pointer; text-decoration: none; }
+    nav a:hover, nav button:hover { text-decoration: underline; }
+    main { max-width: 1050px; margin: 28px auto; padding: 0 16px; }
+    section { background: white; padding: 24px; border-radius: 12px; box-shadow: 0 4px 18px #0000000c; }
+    label { font-weight: bold; display: block; margin: 16px 0 8px; }
+    select, input { padding: 11px; border: 1px solid #cbd5e1; border-radius: 7px; font: inherit; }
+    select { width: 100%; max-width: 600px; }
+    input[type=number] { width: 125px; max-width: 100%; }
+    .table-wrap { overflow-x: auto; margin-top: 16px; }
+    table { border-collapse: collapse; width: 100%; min-width: 650px; }
+    th, td { text-align: left; border-bottom: 1px solid #e2e8f0; padding: 12px; }
+    th { background: #eaf0f6; }
+    .save { padding: 10px 15px; border: 0; border-radius: 7px; color: white; background: #187f9d; font-weight: bold; cursor: pointer; }
+    .save:disabled { opacity: .55; cursor: not-allowed; }
+    .muted { color: #5b6877; }
+    #message { min-height: 24px; white-space: pre-wrap; }
+    #message.error { color: #a1212b; }
+    #message.success { color: #12623b; }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Digital Production Request</h1>
+    <p>Material Issuing — Logistic Only</p>
+    <nav>
+      <a href="index.html">Dashboard</a>
+      <a href="logistic.html">Logistic Approval</a>
+      <button type="button" id="logout">Logout</button>
+    </nav>
+  </header>
+  <main>
+    <section>
+      <h2>Material Issuing</h2>
+      <p id="message" role="status">Checking login...</p>
+      <div id="app" hidden>
+        <label for="requestSelect">Select an approved request</label>
+        <select id="requestSelect" disabled>
+          <option value="">Loading approved requests...</option>
+        </select>
+        <div id="details" aria-live="polite"></div>
+      </div>
+    </section>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const PROJECT_URL = "https://swyzpswrncaghdfnphhc.supabase.co";
+      const PUBLISHABLE_KEY = "sb_publishable_Rek9NATddqXIwNN0UQ6cUw_Iuh5aRoE";
+      const message = document.getElementById("message");
+      const app = document.getElementById("app");
+      const requestSelect = document.getElementById("requestSelect");
+      const details = document.getElementById("details");
+      const logout = document.getElementById("logout");
+      let db;
+      let approvedRequests = [];
+
+      function notify(text, type = "") {
+        message.textContent = text;
+        message.className = type;
+      }
+      function el(tag, text) {
+        const node = document.createElement(tag);
+        if (text !== undefined) node.textContent = String(text);
+        return node;
+      }
+      async function loadDetails() {
+        details.replaceChildren();
+        const requestUuid = requestSelect.value;
+        if (!requestUuid) return;
+        notify("Loading request details...");
+        const { data, error } = await db.from("request_details")
+          .select("id,request_uuid,requested_quantity,issued_quantity,materials(material_code,material_name,unit)")
+          .eq("request_uuid", requestUuid)
+          .order("created_at", { ascending: true });
+        if (error) { notify("Could not load materials: " + error.message, "error"); return; }
+        if (!data || data.length === 0) {
+          notify("No request details found. Use a newly submitted request with a matching Raw Materials model.");
+          return;
+        }
+        const current = approvedRequests.find(r => r.id === requestUuid);
+        details.append(el("h3", "Request: " + (current ? current.request_id : requestUuid)));
+        const wrapper = el("div"); wrapper.className = "table-wrap";
+        const table = el("table");
+        const head = el("tr");
+        ["Material", "Required Qty", "Issued Qty", "Action"].forEach(h => head.append(el("th", h)));
+        const thead = el("thead"); thead.append(head); table.append(thead);
+        const tbody = el("tbody");
+        data.forEach(item => {
+          const tr = el("tr");
+          const material = item.materials || {};
+          const name = [material.material_code, material.material_name].filter(Boolean).join(" — ") || "Unknown material";
+          const required = Number(item.requested_quantity);
+          const materialCell = el("td", name);
+          const requiredCell = el("td", `${required} ${material.unit || ""}`);
+          const issuedCell = el("td");
+          const input = el("input");
+          input.type = "number"; input.min = "0"; input.max = String(required);
+          input.step = "0.0001"; input.value = String(item.issued_quantity ?? 0);
+          input.setAttribute("aria-label", "Issued quantity for " + name);
+          issuedCell.append(input);
+          const actionCell = el("td");
+          const save = el("button", "Save"); save.type = "button"; save.className = "save";
+          save.addEventListener("click", async () => {
+            const qty = Number(input.value);
+            if (input.value.trim() === "" || !Number.isFinite(qty) || qty < 0 || qty > required ||
+                !/^\d+(?:\.\d{1,4})?$/.test(input.value)) {
+              notify("Issued Quantity must be between 0 and Required Qty (up to 4 decimal places).", "error");
+              return;
+            }
+            save.disabled = true;
+            notify("Saving issued quantity...");
+            const { data: saved, error: saveError } = await db.from("request_details")
+              .update({ issued_quantity: qty })
+              .eq("id", item.id)
+              .eq("request_uuid", requestUuid)
+              .select("id,issued_quantity");
+            save.disabled = false;
+            if (saveError) { notify("Could not save: " + saveError.message, "error"); return; }
+            if (!saved || saved.length !== 1) {
+              notify("No row updated. Check that this request is Approved and your account has the Logistic role.", "error");
+              return;
+            }
+            input.value = String(saved[0].issued_quantity);
+            notify("Issued Quantity saved successfully.", "success");
+          });
+          actionCell.append(save);
+          tr.append(materialCell, requiredCell, issuedCell, actionCell);
+          tbody.append(tr);
+        });
+        table.append(tbody); wrapper.append(table); details.append(wrapper);
+        notify("Only approved requests can be updated.");
+      }
+
+      try {
+        if (!window.supabase) throw new Error("Supabase library could not load.");
+        if (PUBLISHABLE_KEY.startsWith("PASTE_")) throw new Error("Add your Supabase Publishable key first.");
+        db = window.supabase.createClient(PROJECT_URL, PUBLISHABLE_KEY);
+        logout.addEventListener("click", async () => {
+          await db.auth.signOut(); window.location.replace("login.html");
+        });
+        const { data: auth, error: authError } = await db.auth.getUser();
+        if (authError || !auth.user) { window.location.replace("login.html"); return; }
+        const { data: profile, error: profileError } = await db.from("profiles")
+          .select("role").eq("id", auth.user.id).single();
+        if (profileError) throw new Error("Cannot read role: " + profileError.message);
+        if (!profile || profile.role !== "Logistic") {
+          notify("Access denied. Please log in with a Logistic account.", "error");
+          return;
+        }
+        const { data: requests, error: requestError } = await db.from("requests")
+          .select("id,request_id,product_model,production_quantity,status")
+          .eq("status", "Approved")
+          .order("created_at", { ascending: false });
+        if (requestError) throw new Error("Could not load approved requests: " + requestError.message);
+        approvedRequests = requests || [];
+        requestSelect.replaceChildren();
+        const placeholder = el("option", "-- Choose approved request --");
+        placeholder.value = ""; requestSelect.append(placeholder);
+        approvedRequests.forEach(request => {
+          const option = el("option", `${request.request_id} | ${request.product_model} | Qty: ${request.production_quantity}`);
+          option.value = request.id; requestSelect.append(option);
+        });
+        requestSelect.disabled = false;
+        requestSelect.addEventListener("change", () => { loadDetails().catch(error => notify(error.message, "error")); });
+        app.hidden = false;
+        notify(approvedRequests.length ? "Choose an Approved request to issue materials." : "No Approved requests found.");
+      } catch (error) {
+        console.error(error);
+        notify(error.message || "Unexpected error. Please refresh.", "error");
+      }
+    });
+  </script>
+</body>
+</html>
