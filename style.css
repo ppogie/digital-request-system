@@ -770,3 +770,53 @@ textarea {
   }
 }
 
+/* REQUEST HISTORY SEARCH & FILTER */
+
+.history-toolbar {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 22px;
+  align-items: center;
+}
+
+.history-toolbar input,
+.history-toolbar select {
+  background: #0c1526;
+  color: #f8fafc;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  padding: 13px 15px;
+  font-size: 14px;
+  outline: none;
+}
+
+.history-toolbar input {
+  flex: 1;
+  min-width: 0;
+}
+
+.history-toolbar select {
+  width: 175px;
+}
+
+.history-toolbar input:focus,
+.history-toolbar select:focus {
+  border-color: #2dd4bf;
+}
+
+.history-toolbar input::placeholder {
+  color: #94a3b8;
+}
+
+@media (max-width: 768px) {
+  .history-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .history-toolbar input,
+  .history-toolbar select {
+    width: 100%;
+  }
+}
+
