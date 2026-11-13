@@ -265,6 +265,49 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // LOAD REQUESTS FROM DATABASE
 
+// REQUEST HISTORY SEARCH AND FILTER
+
+let cachedRequests = [];
+
+const requestSearch =
+  document.getElementById("requestSearch");
+
+const requestStatusFilter =
+  document.getElementById("requestStatusFilter");
+
+function filterRequests() {
+  const keyword = (requestSearch?.value || "")
+    .trim()
+    .toLowerCase();
+
+  const status =
+    requestStatusFilter?.value || "All";
+
+  const filtered = cachedRequests.filter((r) => {
+    const matchesSearch = [
+      r.request_id,
+      r.staff_id,
+      r.product_model
+    ].some((value) =>
+      String(value ?? "").toLowerCase().includes(keyword)
+    );
+
+    const matchesStatus =
+      status === "All" || r.status === status;
+
+    return matchesSearch && matchesStatus;
+  });
+
+  renderRequests(filtered);
+}
+
+requestSearch?.addEventListener("input", filterRequests);
+
+requestStatusFilter?.addEventListener(
+  "change",
+  filterRequests
+);
+
   async function loadRequests() {
     if (list) {
       list.textContent = "Loading requests...";
