@@ -1,176 +1,517 @@
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
   <title>Digital Production Request System</title>
+
   <link rel="stylesheet" href="style.css">
+
   <style>
-    /* Supplements your existing style.css; does not require editing it. */
-    [hidden] { display: none !important; }
-    #authNotice {
-      grid-column: 1 / -1;
-      max-width: 720px;
-      width: calc(100% - 32px);
-      margin: 24px auto;
-      background: white;
-      padding: 22px;
-      border-radius: 12px;
-      color: #142d4e;
+    /* Prevent hidden elements from appearing */
+    [hidden] {
+      display: none !important;
     }
-    #authNotice.error { color: #9b1c1c; }
-    .dashboard-stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
-      gap: 14px;
-      margin: 16px 0;
-    }
-    .stat-card {
-      background: #edf6fa;
-      border-radius: 10px;
-      padding: 16px;
-    }
-    .stat-card strong { display: block; font-size: 26px; margin-top: 8px; }
-    .quick-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
-    .quick-links a, .action-link {
-      display: inline-block;
-      background: #187f9d;
-      color: white;
-      text-decoration: none;
-      font-weight: 600;
-      padding: 11px 15px;
-      border-radius: 8px;
-    }
-    .quick-links a:hover, .action-link:hover { background: #12657e; }
-    .field { margin: 14px 0; }
-    .field label { display: block; margin: 0 0 7px; font-weight: 600; }
-    .field input, .field textarea { width: 100%; }
-    .feedback { min-height: 22px; margin-top: 10px; }
-    .table-container { overflow-x: auto; }
-    .request-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-    .request-table th { background: #142d4e; color: white; text-align: left; }
-    .request-table th, .request-table td { padding: 12px; border-bottom: 1px solid #e3e9f0; }
-    .request-table td { white-space: nowrap; }
-    .status-pill { border-radius: 20px; padding: 4px 9px; background: #e8edf3; }
-    .status-pill.approved { color: #08623e; background: #def4e8; }
-    .status-pill.rejected { color: #a32121; background: #ffeded; }
-    nav button {
-      padding: 13px 16px;
-      background: transparent;
-      color: #e7edf5;
-      border: 1px solid #45607c;
-      border-radius: 9px;
-      text-align: left;
-      cursor: pointer;
-      font-size: 15px;
-    }
-    nav button:hover { background: #187f9d; }
   </style>
 </head>
-<body>
-  <header>
-    <h1>Digital Production Request System</h1>
-    <p>Raw Material Request Management</p>
-  </header>
 
-  <div id="authNotice" role="status">
-    Checking your login session...
-    <a href="login.html">Go to Login</a>
+<body>
+
+<div class="app-shell">
+
+  <!-- SIDEBAR -->
+
+  <aside class="sidebar" id="mainNav" hidden>
+
+    <div>
+
+      <div class="brand">
+        <h2>Digital Production Request</h2>
+        <p>Raw Material Request System</p>
+      </div>
+
+      <nav class="sidebar-nav">
+
+        <a href="#dashboard">
+          Dashboard
+        </a>
+
+        <a href="#request"
+           id="staffNavLink" hidden>
+          Create Request
+        </a>
+
+        <a href="#history">
+          Request History
+        </a>
+
+        <a href="logistic.html"
+           id="logisticNavLink" hidden>
+          Logistic Approval
+        </a>
+
+        <a href="issuing.html"
+           id="issuingNavLink" hidden>
+          Material Issuing
+        </a>
+
+        <a href="receipt.html"
+           id="receiptNavLink" hidden>
+          Email Receipt
+        </a>
+
+      </nav>
+
+    </div>
+
+    <div class="sidebar-footer">
+
+      <button
+        type="button"
+        id="logoutButton"
+        class="logout-btn">
+        Logout
+      </button>
+
+    </div>
+
+  </aside>
+
+  <!-- MAIN AREA -->
+
+  <div class="main-area">
+
+    <!-- TOP BAR -->
+
+    <header class="topbar">
+
+      <div>
+        <h1>Digital Production Request</h1>
+
+        <p id="welcomeMessage">
+          Production Management Dashboard
+        </p>
+      </div>
+
+    </header>
+
+    <!-- AUTHENTICATION NOTICE -->
+
+    <div id="authNotice" class="notice-card">
+
+      Checking your login session...
+
+      <a href="login.html">
+        Go to Login
+      </a>
+
+    </div>
+
+    <!-- MAIN DASHBOARD -->
+
+    <main id="appMain"
+          class="dashboard-content"
+          hidden>
+
+      <!-- DASHBOARD OVERVIEW -->
+
+      <section id="dashboard">
+
+        <h2>Dashboard Overview</h2>
+
+        <p>
+          Monitor and manage production
+          material requests.
+        </p>
+
+      </section>
+
+      <!-- STATISTICS -->
+
+      <section class="stats-grid">
+
+        <div class="stat-card">
+
+          <span class="stat-label">
+            Pending Requests
+          </span>
+
+          <h2 id="pendingCount">0</h2>
+
+        </div>
+
+        <div class="stat-card">
+
+          <span class="stat-label">
+            Approved Requests
+          </span>
+
+          <h2 id="approvedCount">0</h2>
+
+        </div>
+
+        <div class="stat-card">
+
+          <span class="stat-label">
+            Rejected Requests
+          </span>
+
+          <h2 id="rejectedCount">0</h2>
+
+        </div>
+
+      </section>
+
+      <!-- QUICK ACCESS -->
+
+      <section class="content-card">
+
+        <div class="card-header">
+
+          <h2>Quick Access</h2>
+
+          <p>
+            Access production request
+            management modules.
+          </p>
+
+        </div>
+
+        <div class="quick-grid">
+
+          <!-- STAFF -->
+
+          <a href="#request"
+             class="quick-card"
+             id="staffQuickLink"
+             hidden>
+
+            <h3>Create Request</h3>
+
+            <p>
+              Submit a new production
+              material request.
+            </p>
+
+          </a>
+
+          <!-- LOGISTIC APPROVAL -->
+
+          <a href="logistic.html"
+             class="quick-card"
+             id="approvalQuickLink"
+             hidden>
+
+            <h3>Logistic Approval</h3>
+
+            <p>
+              Review, approve or reject
+              production requests.
+            </p>
+
+          </a>
+
+          <!-- MATERIAL ISSUING -->
+
+          <a href="issuing.html"
+             class="quick-card"
+             id="issuingQuickLink"
+             hidden>
+
+            <h3>Material Issuing</h3>
+
+            <p>
+              Manage issued quantities
+              for approved requests.
+            </p>
+
+          </a>
+
+          <!-- EMAIL RECEIPT -->
+
+          <a href="receipt.html"
+             class="quick-card"
+             id="receiptQuickLink"
+             hidden>
+
+            <h3>Email Receipt</h3>
+
+            <p>
+              Send digital material
+              issuing receipts.
+            </p>
+
+          </a>
+
+        </div>
+
+      </section>
+
+      <!-- CREATE PRODUCTION REQUEST -->
+
+      <section id="request"
+               class="content-card"
+               hidden>
+
+        <div class="card-header">
+
+          <h2>Create Production Request</h2>
+
+          <p>
+            Fill in the details below
+            to request raw materials.
+          </p>
+
+        </div>
+
+        <form id="requestForm"
+              class="request-form">
+
+          <div class="form-grid">
+
+            <!-- REQUEST ID -->
+
+            <div class="form-group">
+
+              <label for="requestId">
+                Request ID
+              </label>
+
+              <input
+                type="text"
+                id="requestId"
+                placeholder="REQ001"
+                required>
+
+            </div>
+
+            <!-- REQUEST DATE -->
+
+            <div class="form-group">
+
+              <label for="requestDate">
+                Request Date
+              </label>
+
+              <input
+                type="date"
+                id="requestDate"
+                required>
+
+            </div>
+
+            <!-- STAFF ID -->
+
+            <div class="form-group">
+
+              <label for="staffId">
+                Staff ID
+              </label>
+
+              <input
+                type="text"
+                id="staffId"
+                placeholder="Enter Staff ID"
+                required>
+
+            </div>
+
+            <!-- PRODUCT MODEL -->
+
+            <div class="form-group">
+
+              <label for="productModel">
+                Product Model
+              </label>
+
+              <input
+                type="text"
+                id="productModel"
+                placeholder="Enter Product Model"
+                required>
+
+            </div>
+
+            <!-- PRODUCTION QUANTITY -->
+
+            <div class="form-group">
+
+              <label for="productionQuantity">
+                Production Quantity
+              </label>
+
+              <input
+                type="number"
+                id="productionQuantity"
+                min="1"
+                step="1"
+                placeholder="Enter Quantity"
+                required>
+
+            </div>
+
+          </div>
+
+          <!-- REMARKS -->
+
+          <div class="form-group">
+
+            <label for="remarks">
+              Remarks
+            </label>
+
+            <textarea
+              id="remarks"
+              rows="4"
+              placeholder="Enter remarks">
+            </textarea>
+
+          </div>
+
+          <!-- SUBMIT -->
+
+          <div class="form-actions">
+
+            <button
+              type="submit"
+              id="submitRequest"
+              class="primary-btn"
+              disabled>
+
+              Submit Request
+
+            </button>
+
+          </div>
+
+          <p id="requestFeedback"
+             role="status"></p>
+
+        </form>
+
+      </section>
+
+      <!-- REQUEST HISTORY -->
+
+      <section id="history"
+               class="content-card">
+
+        <div class="card-header">
+
+          <h2>Request History</h2>
+
+          <p>
+            View and track production
+            request records.
+          </p>
+
+        </div>
+
+        <div id="requestList"></div>
+
+      </section>
+
+      <!-- LOGISTIC APPROVAL CARD -->
+
+      <section
+        id="logisticDashboardCard"
+        class="content-card"
+        hidden>
+
+        <div class="card-header">
+
+          <h2>Logistic Approval</h2>
+
+          <p>
+            Manage production request
+            approvals submitted by Staff.
+          </p>
+
+        </div>
+
+        <a href="logistic.html"
+           class="primary-btn inline-btn">
+
+          Open Logistic Approval
+
+        </a>
+
+      </section>
+
+      <!-- MATERIAL ISSUING CARD -->
+
+      <section
+        id="issuingDashboardCard"
+        class="content-card"
+        hidden>
+
+        <div class="card-header">
+
+          <h2>Material Issuing</h2>
+
+          <p>
+            Update issued quantity
+            for approved requests.
+          </p>
+
+        </div>
+
+        <a href="issuing.html"
+           class="primary-btn inline-btn">
+
+          Open Material Issuing
+
+        </a>
+
+      </section>
+
+      <!-- EMAIL RECEIPT CARD -->
+
+      <section
+        id="receiptDashboardCard"
+        class="content-card"
+        hidden>
+
+        <div class="card-header">
+
+          <h2>Email Receipt</h2>
+
+          <p>
+            Send digital material
+            issuing receipts to Staff.
+          </p>
+
+        </div>
+
+        <a href="receipt.html"
+           class="primary-btn inline-btn">
+
+          Open Email Receipt
+
+        </a>
+
+      </section>
+
+    </main>
+
   </div>
 
-  <nav id="mainNav" aria-label="Main navigation" hidden>
-    <a href="#dashboard">Dashboard</a>
-    <a href="#request" id="staffNavLink" hidden>Create Request</a>
-    <a href="#history">Request History</a>
-    <a href="logistic.html" id="logisticNavLink" hidden>Logistic Approval</a>
-    <a href="issuing.html" id="issuingNavLink" hidden>Material Issuing</a>
-    <a href="receipt.html" id="receiptNavLink" hidden>Email Receipt</a>
-    <a href="#materials">Raw Materials</a>
-    <button type="button" id="logoutButton">Logout</button>
-  </nav>
+</div>
 
-  <main id="appMain" hidden>
-    <section id="dashboard">
-      <h2>Dashboard</h2>
-      <p id="welcomeMessage">Welcome</p>
-      <div class="dashboard-stats" aria-label="Request overview">
-        <div class="stat-card">Pending<strong id="pendingCount">0</strong></div>
-        <div class="stat-card">Approved<strong id="approvedCount">0</strong></div>
-        <div class="stat-card">Rejected<strong id="rejectedCount">0</strong></div>
-      </div>
-      <div class="quick-links">
-        <a href="#request" id="staffQuickLink" hidden>Create Request</a>
-        <a href="logistic.html" id="approvalQuickLink" hidden>Logistic Approval</a>
-        <a href="issuing.html" id="issuingQuickLink" hidden>Material Issuing</a>
-        <a href="receipt.html" id="receiptQuickLink" hidden>Email Receipt</a>
-      </div>
-    </section>
+<!-- SUPABASE JAVASCRIPT LIBRARY -->
 
-    <section id="request" hidden>
-      <h2>Create Production Request</h2>
-      <p>Submit a request for raw materials.</p>
-      <form id="requestForm">
-        <div class="field">
-          <label for="requestId">Request ID</label>
-          <input id="requestId" name="requestId" type="text" maxlength="80" placeholder="Example: REQ004" required>
-        </div>
-        <div class="field">
-          <label for="requestDate">Request Date</label>
-          <input id="requestDate" name="requestDate" type="date" required>
-        </div>
-        <div class="field">
-          <label for="staffId">Staff ID</label>
-          <input id="staffId" name="staffId" type="text" maxlength="80" placeholder="Enter Staff ID" required>
-        </div>
-        <div class="field">
-          <label for="productModel">Product Model</label>
-          <input id="productModel" name="productModel" type="text" maxlength="120" placeholder="Match a model in Raw Materials" required>
-        </div>
-        <div class="field">
-          <label for="productionQuantity">Production Quantity</label>
-          <input id="productionQuantity" name="productionQuantity" type="number" min="1" step="1" required>
-        </div>
-        <div class="field">
-          <label for="remarks">Remarks</label>
-          <textarea id="remarks" name="remarks" rows="3" placeholder="Optional notes"></textarea>
-        </div>
-        <p>Request Status: <strong>Pending</strong></p>
-        <button type="submit" id="submitRequest" disabled>Submit Request</button>
-      </form>
-      <p id="requestFeedback" class="feedback" role="status"></p>
-    </section>
+<script defer
+  src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+</script>
 
-    <section id="history">
-      <h2>Request History</h2>
-      <div id="requestList">Loading requests...</div>
-    </section>
+<!-- EXISTING SYSTEM JAVASCRIPT -->
 
-    <section id="logisticDashboardCard" hidden>
-      <h2>Logistic Approval</h2>
-      <p>Approve or reject requests submitted by Staff.</p>
-      <a class="action-link" href="logistic.html">Open Logistic Approval</a>
-    </section>
+<script defer src="script.js"></script>
 
-    <section id="issuingDashboardCard" hidden>
-      <h2>Material Issuing</h2>
-      <p>Record quantities issued for approved production requests.</p>
-      <a class="action-link" href="issuing.html">Open Material Issuing</a>
-    </section>
-
-    <section id="receiptDashboardCard" hidden>
-      <h2>Email Receipt</h2>
-      <p>Send a paperless material issuing receipt via email.</p>
-      <a class="action-link" href="receipt.html">Open Email Receipt</a>
-    </section>
-
-    <section id="materials">
-      <h2>Raw Materials</h2>
-      <p>Materials and model-to-material mappings are maintained in Supabase.</p>
-    </section>
-  </main>
-
-  <!-- Load Supabase only once, before the application script. -->
-  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script defer src="script.js"></script>
 </body>
 </html>
