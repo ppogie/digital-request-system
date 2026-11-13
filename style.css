@@ -531,3 +531,43 @@ textarea {
     padding: 20px;
   }
 }
+
+/* SIDEBAR ICONS */
+
+.sidebar-nav a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.2s ease;
+}
+
+.sidebar-nav a svg {
+  width: 19px;
+  height: 19px;
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ACTIVE MENU */
+
+.sidebar-nav a.active {
+  background: #164e4a;
+  color: #5eead4;
+  font-weight: 600;
+  border-left: 3px solid #2dd4bf;
+}
+
+.sidebar-nav a:hover {
+  background: #243247;
+  color: #5eead4;
+}
+
+/* HIDDEN ROLE MENUS */
+
+.sidebar-nav a[hidden] {
+  display: none !important;
+}
