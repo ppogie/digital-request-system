@@ -332,7 +332,8 @@ requestStatusFilter?.addEventListener(
 
       const rows = data || [];
 
-      renderRequests(rows);
+cachedRequests = rows;
+filterRequests();
 
       // DASHBOARD STATISTICS
 
