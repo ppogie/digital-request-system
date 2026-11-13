@@ -23,6 +23,9 @@
 </a>
   <a href="#materials">Materials & BOM</a>
   <a href="login.html">Login</a>
+  <a href="issuing.html" id="issuingNavLink" hidden>
+  Material Issuing
+</a>
 </nav>
 
 
@@ -120,6 +123,28 @@
       <h2>Materials & BOM</h2>
       <p>Material and BOM information will appear here.</p>
     </section>
+    
+<section id="issuingDashboardCard" hidden>
+  <h2>Material Issuing</h2>
+
+  <p>
+    Manage raw material issuing for
+    approved production requests.
+  </p>
+
+  <a href="issuing.html"
+     style="
+       display: inline-block;
+       background: #187f9d;
+       color: white;
+       padding: 12px 24px;
+       border-radius: 8px;
+       text-decoration: none;
+       font-weight: bold;
+     ">
+    Open Material Issuing
+  </a>
+</section>
   </main>
 
   <script src="script.js"></script>
@@ -153,9 +178,27 @@ document.addEventListener("DOMContentLoaded", async function () {
       return;
     }
 
-    if (profile.role === "Logistic") {
-      logisticLink.hidden = false;
-    }
+
+if (profile.role === "Logistic") {
+  logisticLink.hidden = false;
+
+  // Show Material Issuing navigation
+  const issuingLink =
+    document.getElementById("issuingNavLink");
+
+  if (issuingLink) {
+    issuingLink.hidden = false;
+  }
+
+  // Show Material Issuing dashboard section
+  const issuingCard =
+    document.getElementById("issuingDashboardCard");
+
+  if (issuingCard) {
+    issuingCard.hidden = false;
+  }
+}
+
 
   } catch (error) {
     console.error("Navigation error:", error);
