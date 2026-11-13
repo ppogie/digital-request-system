@@ -150,6 +150,14 @@
   <script src="script.js"></script>
   
 <script>
+  window.dprClient = window.supabase.createClient(
+    "https://swyzpswrncaghdfnphhc.supabase.co",
+    "MASUKKAN_PUBLISHABLE_KEY_AWAK"
+  );
+</script>
+
+  
+<script>
 document.addEventListener("DOMContentLoaded", async function () {
   const logisticLink = document.getElementById("logisticNavLink");
 
@@ -157,7 +165,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   const db = window.supabase.createClient(
     "https://swyzpswrncaghdfnphhc.supabase.co",
-    "MASUKKAN_PUBLISHABLE_KEY_AWAK"
+    "sb_publishable_Rek9NATddqXIwNN0UQ6cUw_Iuh5aRoE"
   );
 
   try {
