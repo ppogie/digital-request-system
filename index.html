@@ -18,6 +18,113 @@
       display: none !important;
     }
   </style>
+  
+<style>
+/* FIX SIDEBAR DESIGN */
+
+#mainNav.sidebar {
+  width: 245px !important;
+  flex: 0 0 245px !important;
+  padding: 20px 14px !important;
+}
+
+#mainNav .brand h2 {
+  font-size: 18px !important;
+  line-height: 1.3 !important;
+  color: #f8fafc;
+}
+
+#mainNav .brand p {
+  font-size: 12px !important;
+  color: #94a3b8;
+}
+
+/* FIX MENU ARRANGEMENT */
+
+#mainNav .sidebar-nav {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+}
+
+#mainNav .sidebar-nav a {
+  display: flex !important;
+  align-items: center !important;
+  flex-direction: row !important;
+  justify-content: flex-start !important;
+  gap: 12px !important;
+
+  min-height: 44px !important;
+  padding: 11px 13px !important;
+
+  border-radius: 10px !important;
+  color: #cbd5e1;
+  text-decoration: none;
+  font-size: 14px !important;
+  line-height: 1.3 !important;
+}
+
+/* FIX GIANT BLACK ICONS */
+
+#mainNav .sidebar-nav a > svg {
+  width: 20px !important;
+  height: 20px !important;
+  min-width: 20px !important;
+  min-height: 20px !important;
+  max-width: 20px !important;
+  max-height: 20px !important;
+
+  flex: 0 0 20px !important;
+  display: block !important;
+
+  fill: none !important;
+  stroke: currentColor !important;
+  stroke-width: 1.8 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+}
+
+#mainNav .sidebar-nav a > svg * {
+  fill: none !important;
+  stroke: currentColor !important;
+  stroke-width: 1.8 !important;
+}
+
+/* ACTIVE MENU */
+
+#mainNav .sidebar-nav a.active {
+  background: #164e4a !important;
+  color: #5eead4 !important;
+  border-left: 3px solid #2dd4bf !important;
+}
+
+#mainNav .sidebar-nav a:hover {
+  background: #243247 !important;
+  color: #5eead4 !important;
+}
+
+/* KEEP ROLE MENUS HIDDEN */
+
+#mainNav .sidebar-nav a[hidden] {
+  display: none !important;
+}
+
+/* MOBILE RESPONSIVE */
+
+@media (max-width: 768px) {
+  #mainNav.sidebar {
+    width: 100% !important;
+    flex: none !important;
+    height: auto !important;
+  }
+
+  #mainNav .sidebar-nav {
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+  }
+}
+</style>
+
 </head>
 
 <body>
