@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Email Receipt | Digital Production Request</title>
+  <style>
+    :root { font-family: Arial, sans-serif; color: #142d4e; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f1f5f9; }
+    header { background: #142d4e; color: white; padding: 20px max(20px, calc((100vw - 1040px)/2)); }
+    header h1 { font-size: 23px; margin: 0 0 5px; }
+    header p { margin: 0; font-size: 14px; }
+    main { max-width: 1040px; margin: 28px auto; padding: 0 16px; }
+    .card { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 18px #142d4e12; }
+    .tools { display: flex; align-items: end; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+    .field { flex: 1 1 280px; }
+    label { display: block; font-weight: bold; margin: 0 0 9px; }
+    select { width: 100%; padding: 12px; border: 1px solid #b8c7d9; border-radius: 7px; font-size: 15px; }
+    button, .link { display: inline-block; padding: 12px 16px; border: 0; border-radius: 7px; font: bold 14px Arial, sans-serif; text-decoration: none; cursor: pointer; }
+    .primary { background: #187f9d; color: white; }
+    .secondary { background: #e7edf4; color: #142d4e; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    #message { margin: 12px 0; line-height: 1.5; }
+    #message.error { color: #a22929; }
+    #receipt { display: none; border: 1px solid #d4deea; border-radius: 9px; padding: 22px; margin-top: 18px; color: #243449; }
+    #receipt h2 { margin: 0 0 5px; color: #142d4e; }
+    .subheading { color: #52647b; font-size: 13px; margin: 0 0 18px; }
+    .meta { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+    .meta div { border-bottom: 1px solid #e5ebf2; padding: 7px 0; }
+    .meta strong { display: block; margin-bottom: 5px; font-size: 12px; color: #52647b; }
+    .table-wrap { width: 100%; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { background: #142d4e; color: white; padding: 10px; text-align: left; }
+    td { border-bottom: 1px solid #e5ebf2; padding: 10px; }
+    td.num { text-align: right; white-space: nowrap; }
+    .note { font-size: 12px; color: #607187; line-height: 1.5; margin: 18px 0 0; }
+    @media (max-width: 650px) { .meta { grid-template-columns: 1fr; } .card { padding: 18px; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Digital Production Request</h1>
+    <p>Email Receipt — Paperless</p>
+  </header>
+  <main>
+    <section class="card">
+      <div class="tools">
+        <div class="field">
+          <label for="requestSelect">Select an approved request</label>
+          <select id="requestSelect" disabled>
+            <option value="">Loading...</option>
+          </select>
+        </div>
+        <button id="refreshBtn" type="button" class="secondary" disabled>Refresh</button>
+        <button id="sendBtn" type="button" class="primary" disabled>Send Receipt via Email</button>
+        <a href="issuing.html" class="link secondary">Back to Issuing</a>
+      </div>
+      <p id="message" role="status">Checking login...</p>
+      <section id="receipt" aria-label="Email material issuing summary">
+        <h2>Material Issuing Email Receipt</h2>
+        <p class="subheading">Preview of the issued materials that will be sent by email</p>
+        <div class="meta">
+          <div><strong>Request ID</strong><span id="outRequestId"></span></div>
+          <div><strong>Request Date</strong><span id="outDate"></span></div>
+          <div><strong>Product Model</strong><span id="outModel"></span></div>
+          <div><strong>Production Quantity</strong><span id="outQuantity"></span></div>
+          <div><strong>Staff ID</strong><span id="outStaff"></span></div>
+          <div><strong>Issuing Summary Status</strong><span id="outStatus"></span></div>
+          <div><strong>Generated At</strong><span id="outGenerated"></span></div>
+          <div><strong>Prepared By (Login)</strong><span id="outBy"></span></div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>Material Code</th><th>Material Name</th><th>Unit</th>
+              <th>Required Qty</th><th>Issued Qty</th>
+            </tr></thead>
+            <tbody id="receiptRows"></tbody>
+          </table>
+        </div>
+        <p class="note">This receipt is sent digitally. No printing is required. For initial testing, the server sends to RECEIPT_TEST_EMAIL if configured. Sending is enabled only when every required quantity has been issued. Status "Sent" means the email provider accepted the message; actual inbox delivery is not yet confirmed.</p>
+      </section>
+    </section>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    "use strict";
+    const SUPABASE_URL = "https://swyzpswrncaghdfnphhc.supabase.co";
+    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_Rek9NATddqXIwNN0UQ6cUw_Iuh5aRoE";
+    const byId = id => document.getElementById(id);
+    const select = byId("requestSelect");
+    const message = byId("message");
+    const refreshBtn = byId("refreshBtn");
+    const sendBtn = byId("sendBtn");
+    const receipt = byId("receipt");
+    let client;
+    let approved = [];
+    let currentUser;
+
+    function info(text, error = false) {
+      message.textContent = text;
+      message.classList.toggle("error", error);
+    }
+    function setText(id, value) { byId(id).textContent = String(value ?? ""); }
+    function qty(value) { return Number(value || 0).toLocaleString("en-MY", {maximumFractionDigits: 4}); }
+
+    async function loadRequests() {
+      select.disabled = true;
+      sendBtn.disabled = true;
+      receipt.style.display = "none";
+      info("Loading approved requests...");
+      const { data, error } = await client.from("requests")
+        .select("id,request_id,request_date,staff_id,product_model,production_quantity,status")
+        .eq("status", "Approved")
+        .order("request_date", { ascending: false });
+      if (error) throw error;
+      approved = data || [];
+      select.replaceChildren();
+      const placeholder = document.createElement("option");
+      placeholder.value = "";
+      placeholder.textContent = "Select request";
+      select.appendChild(placeholder);
+      for (const r of approved) {
+        const option = document.createElement("option");
+        option.value = r.id;
+        option.textContent = `${r.request_id} | ${r.product_model} | Qty: ${r.production_quantity}`;
+        select.appendChild(option);
+      }
+      select.disabled = approved.length === 0;
+      info(approved.length ? "Select an approved request to view its issuing summary." : "No approved requests found.");
+    }
+
+    async function loadSummary() {
+      const request = approved.find(r => r.id === select.value);
+      receipt.style.display = "none";
+      sendBtn.disabled = true;
+      if (!request) { info("Select a request first."); return; }
+      info("Loading issued quantities...");
+      const { data: details, error: detailError } = await client
+        .from("request_details")
+        .select("material_id,requested_quantity,issued_quantity")
+        .eq("request_uuid", request.id);
+      if (detailError) throw detailError;
+      if (!details || details.length === 0) {
+        info("No Request Details found. This request may have been created before Raw Materials were linked.", true);
+        return;
+      }
+      const ids = [...new Set(details.map(d => d.material_id))];
+      const { data: materials, error: materialsError } = await client
+        .from("materials")
+        .select("material_id,material_code,material_name,unit")
+        .in("material_id", ids);
+      if (materialsError) throw materialsError;
+      const map = new Map((materials || []).map(m => [m.material_id, m]));
+      const sorted = details.slice().sort((a, b) =>
+        String(map.get(a.material_id)?.material_code || "").localeCompare(String(map.get(b.material_id)?.material_code || ""))
+      );
+      const tbody = byId("receiptRows");
+      tbody.replaceChildren();
+      for (const d of sorted) {
+        const m = map.get(d.material_id);
+        const row = document.createElement("tr");
+        const columns = [m?.material_code || "Unknown", m?.material_name || "Unknown", m?.unit || "", qty(d.requested_quantity), qty(d.issued_quantity)];
+        columns.forEach((value, index) => {
+          const cell = document.createElement("td");
+          cell.textContent = value;
+          if (index >= 3) cell.className = "num";
+          row.appendChild(cell);
+        });
+        tbody.appendChild(row);
+      }
+      const issuedCount = details.filter(d => Number(d.issued_quantity) > 0).length;
+      const fullyIssued = details.every(d => Number(d.issued_quantity) >= Number(d.requested_quantity));
+      const status = fullyIssued ? "Fully issued" : issuedCount > 0 ? "Partially issued" : "Not issued";
+      setText("outRequestId", request.request_id);
+      setText("outDate", request.request_date);
+      setText("outModel", request.product_model);
+      setText("outQuantity", qty(request.production_quantity));
+      setText("outStaff", request.staff_id);
+      setText("outStatus", status);
+      setText("outGenerated", new Date().toLocaleString("en-MY"));
+      setText("outBy", currentUser.email || currentUser.id);
+      receipt.style.display = "block";
+      sendBtn.disabled = true;
+      if (!fullyIssued) {
+        info(issuedCount === 0
+          ? "No material issued yet. Save all Issued Quantities in Material Issuing first."
+          : "Issuing is incomplete. Complete every material before sending the receipt.");
+        return;
+      }
+      const { data: emailRecord, error: recordError } = await client
+        .from("email_receipts")
+        .select("email_status,recipient_email,sent_at,error_message")
+        .eq("request_uuid", request.id)
+        .maybeSingle();
+      if (recordError) throw recordError;
+      if (emailRecord?.email_status === "Sent") {
+        info("Email already accepted by provider for this request. Duplicate sending is blocked.");
+      } else if (emailRecord?.email_status === "Pending") {
+        info("Email is being processed. Do not send it again.");
+      } else {
+        sendBtn.disabled = false;
+        info(emailRecord?.email_status === "Failed"
+          ? "Previous send failed. Check Resend logs before trying again."
+          : "All materials issued. Review the quantities, then click Send Receipt via Email.");
+      }
+    }
+
+    async function guarded(work) {
+      try { await work(); }
+      catch (error) {
+        console.error(error);
+        receipt.style.display = "none";
+        sendBtn.disabled = true;
+        info("Error: " + (error?.message || "Unable to load data"), true);
+      }
+    }
+
+    select.addEventListener("change", () => guarded(loadSummary));
+    refreshBtn.addEventListener("click", () => guarded(async () => {
+      const previousId = select.value;
+      await loadRequests();
+      if (approved.some(r => r.id === previousId)) {
+        select.value = previousId;
+        await loadSummary();
+      }
+    }));
+    sendBtn.addEventListener("click", () => guarded(async () => {
+      const request = approved.find(r => r.id === select.value);
+      if (!request || sendBtn.disabled || receipt.style.display !== "block") return;
+      if (!confirm(`Send email receipt for ${request.request_id}? For testing it will go to the configured test email.`)) return;
+      sendBtn.disabled = true;
+      info("Sending receipt securely through Supabase...");
+      const { data, error } = await client.functions.invoke("send-receipt", {
+        body: { request_id: request.request_id }
+      });
+      if (error) {
+        let reason = error.message || "Could not send receipt";
+        if (error.context && typeof error.context.json === "function") {
+          try {
+            const result = await error.context.json();
+            reason = result.message || result.error || reason;
+          } catch { /* keep fallback error */ }
+        }
+        throw new Error(reason);
+      }
+      if (!data?.ok) throw new Error(data?.message || "Email provider did not confirm acceptance.");
+      await loadSummary();
+      info(data.message || "Email accepted by provider. Check your test inbox and Resend logs.");
+    }));
+
+    guarded(async () => {
+      if (!window.supabase) throw new Error("Supabase library could not load.");
+      if (SUPABASE_PUBLISHABLE_KEY.startsWith("PASTE_")) throw new Error("Paste your Supabase Publishable key in receipt.html first.");
+      client = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+      const { data: auth, error: authError } = await client.auth.getUser();
+      if (authError || !auth?.user) {
+        window.location.replace("login.html");
+        return;
+      }
+      currentUser = auth.user;
+      const { data: profile, error: profileError } = await client
+        .from("profiles")
+        .select("role")
+        .eq("id", currentUser.id)
+        .single();
+      if (profileError) throw profileError;
+      if (profile?.role !== "Logistic") {
+        info("Access denied. Only Logistic users may view this issuing summary.", true);
+        return;
+      }
+      refreshBtn.disabled = false;
+      await loadRequests();
+    });
+  </script>
+</body>
+</html>
