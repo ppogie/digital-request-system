@@ -1,123 +1,104 @@
 
-/*
- DIGITAL PRODUCTION REQUEST SYSTEM
- Dashboard JavaScript - Supabase Version
-*/
-
-document.addEventListener("DOMContentLoaded", async function () {
+document.addEventListener("DOMContentLoaded", async () => {
   "use strict";
 
-  // SUPABASE CONFIGURATION
+  const URL = "https://swyzpswrncaghdfnphhc.supabase.co";
+  const KEY = "sb_publishable_Rek9NATddqXIwNN0UQ6cUw_Iuh5aRoE";
 
-  const SUPABASE_URL =
-    "https://swyzpswrncaghdfnphhc.supabase.co";
+  const el = (id) => document.getElementById(id);
+  const form = el("requestForm");
+  const submit = el("submitRequest");
+  const notice = el("authNotice");
+  const nav = el("mainNav");
+  const main = el("appMain");
 
-  const SUPABASE_PUBLISHABLE_KEY =
-    "sb_publishable_Rek9NATddqXIwNN0UQ6cUw_Iuh5aRoE";
+  // SHOW OR HIDE ELEMENTS
 
-  // HTML ELEMENTS
+  function visible(node, show) {
+    if (!node) return;
+    node.hidden = !show;
+    node.style.display = show ? "" : "none";
+  }
 
-  const notice = document.getElementById("authNotice");
-  const navigation = document.getElementById("mainNav");
-  const main = document.getElementById("appMain");
-  const form = document.getElementById("requestForm");
+  // REQUEST FEEDBACK
 
-  const submitButton =
-    document.getElementById("submitRequest");
+  function message(text, isError = false) {
+    let feedback = el("requestFeedback");
 
-  const feedback =
-    document.getElementById("requestFeedback");
+    if (!feedback && form) {
+      feedback = document.createElement("p");
+      feedback.id = "requestFeedback";
+      form.after(feedback);
+    }
 
-  const requestList =
-    document.getElementById("requestList");
+    if (feedback) {
+      feedback.textContent = text;
+      feedback.style.color = isError
+        ? "#a32121"
+        : "#08623e";
+    }
+  }
 
   // ERROR HANDLING
 
-  function showError(message) {
-    console.error(message);
+  function showError(text) {
+    console.error(text);
 
-    if (notice) {
-      notice.textContent = message + " ";
+    let box = notice;
 
-      const link = document.createElement("a");
-      link.href = "login.html";
-      link.textContent = "Go to Login";
-
-      notice.appendChild(link);
-      notice.hidden = false;
+    if (!box) {
+      box = document.createElement("p");
+      (main || document.body).prepend(box);
     }
 
-    if (navigation) navigation.hidden = true;
-    if (main) main.hidden = true;
-  }
+    box.textContent = text + " ";
 
-  function showElement(id, shouldShow) {
-    const element = document.getElementById(id);
+    const link = document.createElement("a");
+    link.href = "login.html";
+    link.textContent = "Go to Login";
+    box.appendChild(link);
 
-    if (element) {
-      element.hidden = !shouldShow;
+    visible(box, true);
+    visible(nav, false);
+
+    if (main && box !== main) {
+      visible(main, true);
     }
+
+    document.body.style.visibility = "visible";
   }
 
-  function setFeedback(message, isError = false) {
-    if (!feedback) return;
+  // LOCAL DATE
 
-    feedback.textContent = message;
+  function localToday() {
+    const date = new Date();
 
-    feedback.style.color = isError
-      ? "#a32121"
-      : "#08623e";
-  }
-
-  function setToday() {
-    const input = document.getElementById("requestDate");
-
-    if (!input) return;
-
-    const today = new Date();
-
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, "0");
-    const dd = String(today.getDate()).padStart(2, "0");
-
-    input.value = `${yyyy}-${mm}-${dd}`;
+    return [
+      date.getFullYear(),
+      String(date.getMonth() + 1).padStart(2, "0"),
+      String(date.getDate()).padStart(2, "0")
+    ].join("-");
   }
 
   // CHECK SUPABASE LIBRARY
 
-  if (
-    !window.supabase ||
-    typeof window.supabase.createClient !== "function"
-  ) {
+  if (!window.supabase?.createClient) {
     showError(
-      "Supabase library failed to load. Please refresh."
+      "Supabase library not loaded. Check the script tags in index.html."
     );
     return;
   }
 
-  // CREATE ONE SUPABASE CLIENT
+  // REUSE ONE SUPABASE CLIENT
 
-  let db;
+  const db = window.dprClient ||
+    window.supabase.createClient(URL, KEY);
 
-  try {
-    db = window.dprClient ||
-      window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_PUBLISHABLE_KEY
-      );
-
-    window.dprClient = db;
-
-  } catch (error) {
-    showError(
-      "Supabase connection error: " + error.message
-    );
-    return;
-  }
+  window.dprClient = db;
 
   // VERIFY LOGIN
 
-  let currentUser;
+  let user;
 
   try {
     const { data, error } = await db.auth.getUser();
@@ -125,16 +106,14 @@ document.addEventListener("DOMContentLoaded", async function () {
     if (error) throw error;
 
     if (!data.user) {
-      window.location.replace("login.html");
+      location.replace("login.html");
       return;
     }
 
-    currentUser = data.user;
+    user = data.user;
 
   } catch (error) {
-    showError(
-      "Login verification failed: " + error.message
-    );
+    showError("Login check failed: " + error.message);
     return;
   }
 
@@ -146,21 +125,19 @@ document.addEventListener("DOMContentLoaded", async function () {
     const { data, error } = await db
       .from("profiles")
       .select("role")
-      .eq("id", currentUser.id)
+      .eq("id", user.id)
       .single();
 
     if (error) throw error;
 
     role = data.role;
 
-    if (role !== "Staff" && role !== "Logistic") {
-      throw new Error("Invalid user role.");
+    if (!["Staff", "Logistic"].includes(role)) {
+      throw Error("Unknown user role");
     }
 
   } catch (error) {
-    showError(
-      "Unable to check role: " + error.message
-    );
+    showError("Cannot read role: " + error.message);
     return;
   }
 
@@ -169,151 +146,143 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   // STAFF NAVIGATION
 
-  showElement("staffNavLink", isStaff);
-  showElement("staffQuickLink", isStaff);
-  showElement("request", isStaff);
+  [
+    "staffNavLink",
+    "staffQuickLink",
+    "request"
+  ].forEach((id) => visible(el(id), isStaff));
 
   // LOGISTIC NAVIGATION
 
-  showElement("logisticNavLink", isLogistic);
-  showElement("issuingNavLink", isLogistic);
-  showElement("receiptNavLink", isLogistic);
-
-  showElement("approvalQuickLink", isLogistic);
-  showElement("issuingQuickLink", isLogistic);
-  showElement("receiptQuickLink", isLogistic);
-
-  // LOGISTIC DASHBOARD SECTIONS
-
-  showElement("logisticDashboardCard", isLogistic);
-  showElement("issuingDashboardCard", isLogistic);
-  showElement("receiptDashboardCard", isLogistic);
+  [
+    "logisticNavLink",
+    "issuingNavLink",
+    "receiptNavLink",
+    "approvalQuickLink",
+    "issuingQuickLink",
+    "receiptQuickLink",
+    "logisticDashboardCard",
+    "issuingDashboardCard",
+    "receiptDashboardCard"
+  ].forEach((id) => visible(el(id), isLogistic));
 
   // WELCOME MESSAGE
 
-  const welcome =
-    document.getElementById("welcomeMessage");
-
-  if (welcome) {
-    welcome.textContent =
-      `Signed in as ${currentUser.email} (${role})`;
+  if (el("welcomeMessage")) {
+    el("welcomeMessage").textContent =
+      `Signed in: ${user.email} (${role})`;
   }
 
   // SHOW DASHBOARD
 
-  if (notice) notice.hidden = true;
-  if (navigation) navigation.hidden = false;
-  if (main) main.hidden = false;
+  visible(notice, false);
+  visible(nav, true);
+  visible(main, true);
 
   document.body.style.visibility = "visible";
 
-  // REQUEST HISTORY TABLE
+  // REQUEST HISTORY CONTAINER
+
+  let list = el("requestList");
+
+  if (!list && form) {
+    list = document.createElement("div");
+    list.id = "requestList";
+    form.after(list);
+  }
+
+  // DISPLAY REQUEST HISTORY
 
   function renderRequests(rows) {
-    if (!requestList) return;
+    if (!list) return;
 
-    requestList.replaceChildren();
+    list.replaceChildren();
 
-    if (rows.length === 0) {
-      const empty = document.createElement("p");
-      empty.textContent = "No requests found.";
+    const heading = document.createElement("h3");
+    heading.textContent = isLogistic
+      ? "All Requests"
+      : "My Request History";
 
-      requestList.appendChild(empty);
+    list.appendChild(heading);
+
+    if (!rows.length) {
+      const p = document.createElement("p");
+      p.textContent = "No requests found.";
+      list.appendChild(p);
       return;
     }
 
-    const wrapper = document.createElement("div");
-    wrapper.className = "table-container";
+    const wrap = document.createElement("div");
+    wrap.className = "table-container";
 
     const table = document.createElement("table");
     table.className = "request-table";
 
     const thead = document.createElement("thead");
-    const headerRow = document.createElement("tr");
+    const top = document.createElement("tr");
 
-    const headers = [
+    [
       "Request ID",
       "Date",
       "Staff ID",
       "Product Model",
       "Quantity",
       "Status"
-    ];
-
-    headers.forEach(function (label) {
+    ].forEach((name) => {
       const th = document.createElement("th");
-      th.textContent = label;
-      headerRow.appendChild(th);
+      th.textContent = name;
+      top.appendChild(th);
     });
 
-    thead.appendChild(headerRow);
+    thead.appendChild(top);
     table.appendChild(thead);
 
     const tbody = document.createElement("tbody");
 
-    rows.forEach(function (request) {
+    rows.forEach((row) => {
       const tr = document.createElement("tr");
 
-      const values = [
-        request.request_id,
-        request.request_date,
-        request.staff_id,
-        request.product_model,
-        request.production_quantity
-      ];
-
-      values.forEach(function (value) {
+      [
+        row.request_id,
+        row.request_date,
+        row.staff_id,
+        row.product_model,
+        row.production_quantity,
+        row.status
+      ].forEach((value) => {
         const td = document.createElement("td");
         td.textContent = String(value ?? "");
         tr.appendChild(td);
       });
 
-      const statusCell = document.createElement("td");
-      const status = document.createElement("span");
-
-      status.className =
-        "status-pill " +
-        String(request.status || "").toLowerCase();
-
-      status.textContent = request.status || "Unknown";
-
-      statusCell.appendChild(status);
-      tr.appendChild(statusCell);
-
       tbody.appendChild(tr);
     });
 
     table.appendChild(tbody);
-    wrapper.appendChild(table);
-    requestList.appendChild(wrapper);
+    wrap.appendChild(table);
+    list.appendChild(wrap);
   }
 
-  // LOAD REQUESTS FROM SUPABASE
+  // LOAD REQUESTS FROM DATABASE
 
   async function loadRequests() {
-    if (requestList) {
-      requestList.textContent = "Loading requests...";
+    if (list) {
+      list.textContent = "Loading requests...";
+    }
+
+    let query = db
+      .from("requests")
+      .select(
+        "request_id,request_date,requested_by,staff_id," +
+        "product_model,production_quantity,status,created_at"
+      )
+      .order("created_at", { ascending: false });
+
+    if (isStaff) {
+      query = query.eq("requested_by", user.id);
     }
 
     try {
-      let query = db
-        .from("requests")
-        .select(
-          "request_id,request_date,requested_by,staff_id," +
-          "product_model,production_quantity,status,created_at"
-        )
-        .order("created_at", { ascending: false });
-
-      // Staff only see their own requests
-      // RLS also controls access at database level
-
-      if (isStaff) {
-        query = query.eq(
-          "requested_by",
-          currentUser.id
-        );
-      }
-
       const { data, error } = await query;
 
       if (error) throw error;
@@ -322,170 +291,152 @@ document.addEventListener("DOMContentLoaded", async function () {
 
       renderRequests(rows);
 
-      // UPDATE DASHBOARD STATISTICS
+      // DASHBOARD STATISTICS
 
-      ["Pending", "Approved", "Rejected"].forEach(
-        function (status) {
-          const countNode = document.getElementById(
-            status.toLowerCase() + "Count"
+      for (const status of [
+        "Pending",
+        "Approved",
+        "Rejected"
+      ]) {
+        const node = el(
+          status.toLowerCase() + "Count"
+        );
+
+        if (node) {
+          node.textContent = String(
+            rows.filter(
+              (r) => r.status === status
+            ).length
           );
-
-          if (countNode) {
-            countNode.textContent = String(
-              rows.filter(
-                r => r.status === status
-              ).length
-            );
-          }
         }
-      );
+      }
 
     } catch (error) {
-      console.error("Request loading error:", error);
-
-      if (requestList) {
-        requestList.textContent =
+      if (list) {
+        list.textContent =
           "Cannot load requests: " + error.message;
       }
+
+      console.error(error);
     }
   }
 
   // CREATE REQUEST - STAFF ONLY
 
-  if (isStaff && form && submitButton) {
-    setToday();
+  if (isStaff && form && submit) {
+    const dateInput = el("requestDate");
 
-    submitButton.disabled = false;
+    if (dateInput && !dateInput.value) {
+      dateInput.value = localToday();
+    }
 
-    form.addEventListener(
-      "submit",
-      async function (event) {
-        event.preventDefault();
+    // FIX THE ORIGINAL BUTTON TYPE
 
-        if (!form.reportValidity()) return;
-        if (submitButton.disabled) return;
+    submit.type = "submit";
+    submit.disabled = false;
 
-        const requestId = document
-          .getElementById("requestId")
-          .value.trim();
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
 
-        const requestDate = document
-          .getElementById("requestDate")
-          .value;
+      if (!form.reportValidity() || submit.disabled) {
+        return;
+      }
 
-        const staffId = document
-          .getElementById("staffId")
-          .value.trim();
+      const request = {
+        request_id: el("requestId")?.value.trim(),
+        request_date: el("requestDate")?.value,
+        requested_by: user.id,
+        staff_id: el("staffId")?.value.trim(),
+        product_model: el("productModel")?.value.trim(),
+        production_quantity: Number(
+          el("productionQuantity")?.value
+        ),
+        remarks: el("remarks")?.value.trim() || "",
+        status: "Pending"
+      };
 
-        const productModel = document
-          .getElementById("productModel")
-          .value.trim();
+      // VALIDATION
 
-        const productionQuantity = Number(
-          document.getElementById(
-            "productionQuantity"
-          ).value
+      if (
+        !request.request_id ||
+        !request.request_date ||
+        !request.staff_id ||
+        !request.product_model ||
+        !Number.isSafeInteger(request.production_quantity) ||
+        request.production_quantity < 1
+      ) {
+        message(
+          "Please complete all fields correctly.",
+          true
+        );
+        return;
+      }
+
+      submit.disabled = true;
+      message("Submitting request...");
+
+      try {
+        const { error } = await db
+          .from("requests")
+          .insert(request);
+
+        if (error) throw error;
+
+        form.reset();
+
+        if (dateInput) {
+          dateInput.value = localToday();
+        }
+
+        message(
+          "Request submitted to Supabase successfully!"
         );
 
-        const remarks = document
-          .getElementById("remarks")
-          .value.trim();
+        await loadRequests();
 
-        // VALIDATION
-
-        if (
-          !requestId ||
-          !requestDate ||
-          !staffId ||
-          !productModel ||
-          !Number.isSafeInteger(productionQuantity) ||
-          productionQuantity < 1
-        ) {
-          setFeedback(
-            "Please complete all required fields.",
-            true
-          );
-          return;
-        }
-
-        submitButton.disabled = true;
-        setFeedback("Submitting request...");
-
-        try {
-          const { error } = await db
-            .from("requests")
-            .insert({
-              request_id: requestId,
-              request_date: requestDate,
-              requested_by: currentUser.id,
-              staff_id: staffId,
-              product_model: productModel,
-              production_quantity: productionQuantity,
-              remarks: remarks,
-              status: "Pending"
-            });
-
-          if (error) throw error;
-
-          form.reset();
-          setToday();
-
-          setFeedback(
-            "Request submitted to Supabase successfully!"
-          );
-
-          await loadRequests();
-
-        } catch (error) {
-          const message = error.code === "23505"
+      } catch (error) {
+        message(
+          error.code === "23505"
             ? "Request ID already exists."
-            : "Unable to submit: " + error.message;
+            : "Submission failed: " + error.message,
+          true
+        );
 
-          setFeedback(message, true);
-
-        } finally {
-          submitButton.disabled = false;
-        }
+      } finally {
+        submit.disabled = false;
       }
-    );
+    });
   }
 
-  // LOGOUT FUNCTION
+  // LOGOUT
 
-  const logoutButton =
-    document.getElementById("logoutButton");
+  const logout = el("logoutButton");
 
-  if (logoutButton) {
-    logoutButton.addEventListener(
-      "click",
-      async function () {
-        logoutButton.disabled = true;
+  if (logout) {
+    logout.addEventListener("click", async () => {
+      logout.disabled = true;
 
-        try {
-          const { error } = await db.auth.signOut();
+      try {
+        const { error } = await db.auth.signOut();
 
-          if (error) throw error;
+        if (error) throw error;
 
-          window.location.replace("login.html");
+        location.replace("login.html");
 
-        } catch (error) {
-          logoutButton.disabled = false;
+      } catch (error) {
+        message(
+          "Logout failed: " + error.message,
+          true
+        );
 
-          alert(
-            "Unable to logout: " + error.message
-          );
-        }
+        logout.disabled = false;
       }
-    );
+    });
   }
 
-  // INITIAL LOAD
+  // SYSTEM READY
+
+  console.log("DPR DASHBOARD FIX V2 - role:", role);
 
   await loadRequests();
-
-  console.log(
-    "Digital Production Request Dashboard loaded."
-  );
-
-  console.log("User role:", role);
 });
