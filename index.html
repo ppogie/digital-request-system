@@ -696,5 +696,157 @@
   });
 </script>
 
+<!-- DASHBOARD SIDEBAR ICONS -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+  const nav = document.querySelector(
+    "#mainNav .sidebar-nav"
+  );
+
+  if (!nav) {
+    console.warn("Dashboard sidebar not found");
+    return;
+  }
+
+  // Add Employee Management menu
+  if (!document.getElementById("employeeNavLink")) {
+    const employeeLink = document.createElement("a");
+
+    employeeLink.id = "employeeNavLink";
+    employeeLink.href = "employees.html";
+    employeeLink.textContent = "Employee Management";
+
+    const receiptLink = nav.querySelector(
+      'a[href*="receipt.html"]'
+    );
+
+    if (receiptLink) {
+      receiptLink.after(employeeLink);
+    } else {
+      nav.appendChild(employeeLink);
+    }
+  }
+
+  // Consistent SVG icons
+  const icons = {
+    dashboard:
+      '<rect x="3" y="3" width="7" height="9" rx="1"/>' +
+      '<rect x="14" y="3" width="7" height="5" rx="1"/>' +
+      '<rect x="14" y="12" width="7" height="9" rx="1"/>' +
+      '<rect x="3" y="16" width="7" height="5" rx="1"/>',
+
+    create:
+      '<path d="M8 3h8l5 5v13H3V3z"/>' +
+      '<path d="M16 3v5h5"/>' +
+      '<path d="M12 12v6M9 15h6"/>',
+
+    history:
+      '<path d="M3 12a9 9 0 1 0 3-6.7"/>' +
+      '<path d="M3 3v5h5"/>' +
+      '<path d="M12 7v5l4 2"/>',
+
+    approval:
+      '<rect x="5" y="4" width="14" height="17" rx="2"/>' +
+      '<path d="M9 4.5h6"/>' +
+      '<path d="m9 13 2 2 4-4"/>',
+
+    issuing:
+      '<path d="m3 7 9-4 9 4-9 4z"/>' +
+      '<path d="M3 7v10l9 4 9-4V7"/>' +
+      '<path d="M12 11v10"/>' +
+      '<path d="m16 15 2 2 3-3"/>',
+
+    receipt:
+      '<rect x="3" y="5" width="18" height="14" rx="2"/>' +
+      '<path d="m3 7 9 6 9-6"/>',
+
+    employees:
+      '<circle cx="9" cy="8" r="3"/>' +
+      '<path d="M3 20v-2a6 6 0 0 1 12 0v2"/>' +
+      '<path d="M17 5a3 3 0 0 1 0 6"/>' +
+      '<path d="M18 14a5 5 0 0 1 3 5"/>',
+
+    logout:
+      '<path d="M10 17l5-5-5-5"/>' +
+      '<path d="M15 12H3"/>' +
+      '<path d="M12 3h6a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3h-6"/>'
+  };
+
+  const makeIcon = (content) => `
+    <svg
+      class="dpr-menu-icon"
+      width="19"
+      height="19"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.8"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true">
+      ${content}
+    </svg>
+  `;
+
+  nav.querySelectorAll("a").forEach(link => {
+
+    const label = link.textContent.trim().toLowerCase();
+    const href = (
+      link.getAttribute("href") || ""
+    ).toLowerCase();
+
+    let type = null;
+
+    if (href.includes("employees.html") ||
+        label.includes("employee")) {
+      type = "employees";
+    } else if (href.includes("logistic.html") ||
+               label.includes("approval")) {
+      type = "approval";
+    } else if (href.includes("issuing.html") ||
+               label.includes("issuing")) {
+      type = "issuing";
+    } else if (href.includes("receipt.html") ||
+               label.includes("receipt")) {
+      type = "receipt";
+    } else if (label.includes("history")) {
+      type = "history";
+    } else if (label.includes("create") ||
+               label.includes("new request")) {
+      type = "create";
+    } else if (label.includes("dashboard")) {
+      type = "dashboard";
+    }
+
+    if (!type) return;
+
+    // Replace old icons, preserve menu links
+    link.querySelectorAll(
+      "svg, i, .nav-icon"
+    ).forEach(oldIcon => oldIcon.remove());
+
+    link.insertAdjacentHTML(
+      "afterbegin",
+      makeIcon(icons[type])
+    );
+
+  });
+
+  const logoutButton =
+    document.getElementById("logoutButton");
+
+  if (logoutButton &&
+      !logoutButton.querySelector(".dpr-menu-icon")) {
+
+    logoutButton.insertAdjacentHTML(
+      "afterbegin",
+      makeIcon(icons.logout)
+    );
+  }
+
+});
+</script>
+
 </body>
 </html>
