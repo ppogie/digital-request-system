@@ -484,3 +484,87 @@ filterRequests();
 
   await loadRequests();
 });
+
+/* PREMIUM DASHBOARD SIDEBAR */
+
+#mainNav .sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+#mainNav .sidebar-nav a {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  padding: 13px 15px;
+  min-height: 46px;
+
+  color: #cbd5e1;
+  text-decoration: none;
+
+  border-radius: 10px;
+  border-left: 3px solid transparent;
+
+  font-size: 14px;
+  font-weight: 500;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+/* ICON SIZE FIX */
+
+#mainNav .sidebar-nav a > svg.dpr-menu-icon,
+#logoutButton > svg.dpr-menu-icon {
+  display: inline-block !important;
+
+  width: 19px !important;
+  height: 19px !important;
+
+  min-width: 19px !important;
+  max-width: 19px !important;
+  min-height: 19px !important;
+  max-height: 19px !important;
+
+  flex-shrink: 0;
+  fill: none !important;
+  stroke: currentColor !important;
+}
+
+#mainNav .sidebar-nav a svg.dpr-menu-icon *,
+#logoutButton svg.dpr-menu-icon * {
+  fill: none !important;
+  stroke: currentColor !important;
+}
+
+/* HOVER */
+
+#mainNav .sidebar-nav a:hover {
+  background: #1e3044;
+  color: #5eead4;
+  transform: translateX(3px);
+}
+
+/* ACTIVE MENU */
+
+#mainNav .sidebar-nav a.active,
+#mainNav .sidebar-nav a[aria-current="page"] {
+  background: #164e4a !important;
+  color: #5eead4 !important;
+
+  border-left-color: #2dd4bf;
+  font-weight: 600;
+}
+
+/* LOGOUT */
+
+#logoutButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
