@@ -1,0 +1,280 @@
+
+/* DIGITAL PRODUCTION REQUEST
+   SHARED DARK COLOR THEME */
+
+:root {
+  color-scheme: dark;
+
+  --dpr-bg: #0b1120;
+  --dpr-sidebar: #0f172a;
+  --dpr-card: #151f32;
+  --dpr-field: #101b2d;
+  --dpr-border: #293548;
+  --dpr-text: #f1f5f9;
+  --dpr-muted: #94a3b8;
+  --dpr-accent: #2dd4bf;
+}
+
+/* PRESERVE HIDDEN ELEMENTS */
+
+[hidden] {
+  display: none !important;
+}
+
+/* GENERAL COLORS */
+
+html {
+  background: var(--dpr-bg);
+}
+
+body {
+  background: var(--dpr-bg) !important;
+  color: var(--dpr-text) !important;
+}
+
+/* HEADER AND SIDEBAR */
+
+header,
+.topbar,
+.sidebar,
+#mainNav {
+  background: var(--dpr-sidebar) !important;
+  color: var(--dpr-text) !important;
+  border-color: var(--dpr-border) !important;
+}
+
+header h1,
+header h2,
+.topbar h1,
+.brand h2,
+main h1,
+main h2,
+main h3,
+.card h2,
+.content-card h2 {
+  color: var(--dpr-text) !important;
+}
+
+/* SECONDARY TEXT */
+
+header p,
+.topbar p,
+.muted,
+.subtitle,
+.subheading,
+.note,
+.stat-label,
+.card-header p,
+.meta strong,
+#accountInfo,
+.brand p {
+  color: var(--dpr-muted) !important;
+}
+
+/* CARDS AND CONTAINERS */
+
+.card,
+.content-card,
+.login-box,
+.notice-card,
+#authNotice,
+#receipt,
+main > section:not(.stats-grid):not(#dashboard) {
+  background: var(--dpr-card) !important;
+  color: var(--dpr-text) !important;
+
+  border: 1px solid var(--dpr-border) !important;
+  border-radius: 14px;
+
+  box-shadow: 0 10px 28px rgba(0,0,0,0.15);
+}
+
+main,
+.main-area,
+.dashboard-content {
+  color: var(--dpr-text) !important;
+}
+
+.stat-card,
+.quick-card {
+  border-color: var(--dpr-border) !important;
+}
+
+/* INPUTS AND FORMS */
+
+label {
+  color: var(--dpr-text) !important;
+}
+
+input,
+select,
+textarea {
+  background: var(--dpr-field) !important;
+  color: var(--dpr-text) !important;
+  border: 1px solid #334155 !important;
+  border-radius: 9px;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--dpr-muted);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid var(--dpr-accent);
+  outline-offset: 1px;
+}
+
+/* TABLE DESIGN */
+
+.table-wrap,
+.table-container {
+  border: 1px solid var(--dpr-border);
+  border-radius: 10px;
+  overflow-x: auto;
+}
+
+table {
+  background: var(--dpr-field) !important;
+}
+
+th {
+  background: #243247 !important;
+  color: var(--dpr-text) !important;
+  border-color: var(--dpr-border) !important;
+}
+
+td {
+  background: transparent !important;
+  color: #cbd5e1 !important;
+  border-color: var(--dpr-border) !important;
+}
+
+tbody tr:hover {
+  background: #1c2b40;
+}
+
+/* LINKS AND NAVIGATION */
+
+main a:not(.quick-card):not(.primary-btn):not(.secondary),
+header nav a,
+.side-nav a {
+  color: var(--dpr-accent);
+}
+
+.sidebar-nav a,
+.side-nav a {
+  border-radius: 9px;
+  text-decoration: none;
+}
+
+.sidebar-nav a.active,
+.side-nav a.active {
+  background: #164e4a !important;
+  color: #5eead4 !important;
+}
+
+.sidebar-nav a:hover,
+.side-nav a:hover {
+  background: #243247;
+  color: #5eead4;
+}
+
+/* BUTTONS */
+
+button,
+.link,
+.primary-btn {
+  border-radius: 9px;
+}
+
+.primary,
+.primary-btn,
+.save,
+#loginButton,
+#submitRequest,
+#sendBtn {
+  background: #0d9488 !important;
+  color: white !important;
+}
+
+.approve {
+  background: #059669 !important;
+  color: white !important;
+}
+
+.reject {
+  background: #be3348 !important;
+  color: white !important;
+}
+
+.secondary,
+.refresh,
+.logout-btn,
+#logoutButton,
+#logout {
+  background: #243247 !important;
+  color: var(--dpr-text) !important;
+  border-color: var(--dpr-border) !important;
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--dpr-accent);
+  outline-offset: 2px;
+}
+
+/* REQUEST STATUS */
+
+.badge,
+.status-pill.pending {
+  background: #514019 !important;
+  color: #fbbf24 !important;
+}
+
+.badge.approved,
+.status-pill.approved {
+  background: #124638 !important;
+  color: #6ee7b7 !important;
+}
+
+.badge.rejected,
+.status-pill.rejected {
+  background: #49232e !important;
+  color: #fda4af !important;
+}
+
+/* MESSAGES */
+
+.message {
+  background: #122b38 !important;
+  color: #bce8ee !important;
+  border: 1px solid #255267;
+}
+
+.message.error {
+  background: #422127 !important;
+  color: #fda4af !important;
+  border-color: #7f303b;
+}
+
+#message.error,
+#status[data-kind="error"] {
+  color: #fda4af !important;
+}
+
+#message.success,
+#status[data-kind="success"] {
+  color: #6ee7b7 !important;
+}
+
+.meta div {
+  border-color: var(--dpr-border) !important;
+}
