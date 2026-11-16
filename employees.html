@@ -1,0 +1,619 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Employee Management | DPR</title>
+
+<link rel="stylesheet" href="dpr-theme.css">
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 245px minmax(0, 1fr);
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+}
+
+.em-sidebar {
+  background: #0f172a;
+  border-right: 1px solid #293548;
+  padding: 28px 15px;
+}
+
+.em-sidebar h2 {
+  font-size: 18px;
+  line-height: 1.4;
+  margin: 0 0 8px;
+}
+
+.em-sidebar p {
+  color: #94a3b8;
+  font-size: 12px;
+  margin-bottom: 30px;
+}
+
+.em-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.em-nav a {
+  display: block;
+  padding: 13px;
+  border-radius: 9px;
+  color: #cbd5e1;
+  text-decoration: none;
+}
+
+.em-nav a.active {
+  background: #164e4a;
+  color: #5eead4;
+}
+
+.em-main {
+  min-width: 0;
+  padding: 35px;
+}
+
+.em-header,
+.em-toolbar,
+.em-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.em-header { margin-bottom: 25px; }
+
+.em-header h1 {
+  margin: 0 0 8px;
+  font-size: 26px;
+}
+
+.em-muted {
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.em-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.em-stat,
+.em-card {
+  background: #151f32;
+  border: 1px solid #293548;
+  border-radius: 14px;
+  padding: 23px;
+}
+
+.em-stat strong {
+  display: block;
+  font-size: 30px;
+  color: #2dd4bf;
+  margin-top: 12px;
+}
+
+.em-card { margin-bottom: 20px; }
+
+.em-toolbar { margin-bottom: 20px; }
+
+.em-toolbar input,
+.em-toolbar select {
+  padding: 12px;
+  background: #101b2d;
+  color: white;
+  border: 1px solid #334155;
+  border-radius: 8px;
+}
+
+.em-toolbar input {
+  flex: 1;
+  min-width: 180px;
+}
+
+.em-btn {
+  padding: 11px 16px;
+  background: #0d9488;
+  color: white;
+  border: none;
+  border-radius: 9px;
+  cursor: pointer;
+}
+
+.em-btn.secondary {
+  background: #334155;
+}
+
+.em-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.em-form label {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 13px;
+}
+
+.em-form input,
+.em-form select {
+  width: 100%;
+  padding: 12px;
+  background: #101b2d;
+  color: white;
+  border: 1px solid #334155;
+  border-radius: 8px;
+}
+
+.em-form .full { grid-column: 1 / -1; }
+
+.em-table-wrap { overflow-x: auto; }
+
+.em-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 650px;
+}
+
+.em-table th,
+.em-table td {
+  padding: 15px;
+  text-align: left;
+  border-bottom: 1px solid #293548;
+}
+
+.em-table th { background: #243247; }
+
+.em-status {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 16px;
+  background: #124638;
+  color: #6ee7b7;
+}
+
+.em-status.inactive {
+  background: #49232e;
+  color: #fda4af;
+}
+
+#message {
+  margin-bottom: 15px;
+  color: #5eead4;
+}
+
+#message.error { color: #fda4af; }
+
+[hidden] { display: none !important; }
+
+@media(max-width: 768px) {
+  body { display: block; }
+  .em-main { padding: 18px; }
+  .em-stats { grid-template-columns: 1fr; }
+  .em-form { grid-template-columns: 1fr; }
+  .em-form .full { grid-column: auto; }
+}
+</style>
+  
+<link rel="stylesheet" href="dpr-theme.css">
+
+</head>
+
+<body>
+
+<aside class="em-sidebar">
+  <h2>Digital Production Request</h2>
+  <p>Raw Material Request System</p>
+
+  <nav class="em-nav">
+    <a href="index.html">Dashboard</a>
+    <a href="logistic.html">Logistic Approval</a>
+    <a href="issuing.html">Material Issuing</a>
+    <a href="receipt.html">Email Receipt</a>
+    <a href="employees.html" class="active">
+      Employee Management
+    </a>
+  </nav>
+</aside>
+
+<main class="em-main">
+
+  <div class="em-header">
+    <div>
+      <h1>Employee Management</h1>
+      <p class="em-muted">
+        Manage Logistic and Production employees
+      </p>
+      <p class="em-muted" id="roleInfo">
+        Checking login...
+      </p>
+    </div>
+
+    <button id="addBtn" class="em-btn" hidden>
+      + Add Employee
+    </button>
+  </div>
+
+  <div class="em-stats">
+    <div class="em-stat">
+      Total Employees
+      <strong id="totalCount">0</strong>
+    </div>
+    <div class="em-stat">
+      Logistic
+      <strong id="logisticCount">0</strong>
+    </div>
+    <div class="em-stat">
+      Production
+      <strong id="productionCount">0</strong>
+    </div>
+  </div>
+
+  <p id="message" role="status"></p>
+
+  <section id="editor" class="em-card" hidden>
+    <h2 id="formTitle">Add Employee</h2>
+
+    <form id="employeeForm" class="em-form">
+
+      <div>
+        <label for="employeeId">Employee ID</label>
+        <input id="employeeId" required maxlength="50">
+      </div>
+
+      <div>
+        <label for="fullName">Full Name</label>
+        <input id="fullName" required maxlength="150">
+      </div>
+
+      <div>
+        <label for="department">Department</label>
+        <select id="department" required>
+          <option value="Logistic">Logistic</option>
+          <option value="Production">Production</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="position">Position</label>
+        <input id="position" maxlength="100"
+               placeholder="e.g. Operator">
+      </div>
+
+      <div>
+        <label for="employeeActive">Employee Status</label>
+        <select id="employeeActive">
+          <option value="true">Active</option>
+          <option value="false">Inactive</option>
+        </select>
+      </div>
+
+      <div class="full em-actions">
+        <button type="submit" class="em-btn" id="saveBtn">
+          Save Employee
+        </button>
+        <button type="button" class="em-btn secondary"
+                id="cancelBtn">Cancel</button>
+      </div>
+
+    </form>
+  </section>
+
+  <section class="em-card">
+
+    <div class="em-toolbar">
+      <h2>Employee Directory</h2>
+      <button type="button" id="refreshBtn"
+              class="em-btn secondary">Refresh</button>
+    </div>
+
+    <div class="em-toolbar">
+      <input id="searchEmployee"
+             placeholder="Search Employee ID or Name..."
+             aria-label="Search employees">
+
+      <select id="departmentFilter"
+              aria-label="Filter department">
+        <option value="All">All Departments</option>
+        <option value="Logistic">Logistic</option>
+        <option value="Production">Production</option>
+      </select>
+    </div>
+
+    <div class="em-table-wrap">
+      <table class="em-table">
+        <thead>
+          <tr>
+            <th>Employee ID</th>
+            <th>Full Name</th>
+            <th>Department</th>
+            <th>Position</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="employeeRows">
+          <tr><td colspan="6">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </section>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+const SUPABASE_URL =
+  "https://swyzpswrncaghdfnphhc.supabase.co";
+
+const SUPABASE_KEY =
+  "sb_publishable_Rek9NATddqXIwNN0UQ6cUw_Iuh5aRoE";
+
+const db = window.supabase.createClient(
+  SUPABASE_URL, SUPABASE_KEY
+);
+
+const el = id => document.getElementById(id);
+
+let employees = [];
+let canManage = false;
+let editingId = null;
+
+function showMessage(text, error = false) {
+  el("message").textContent = text;
+  el("message").classList.toggle("error", error);
+}
+
+async function init() {
+  const { data: authData, error: authError } =
+    await db.auth.getUser();
+
+  const user = authData?.user;
+
+  if (authError || !user) {
+    location.href = "login.html";
+    return;
+  }
+
+  const { data: profile, error: profileError } =
+    await db.from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+  if (profileError) {
+    showMessage(profileError.message, true);
+    return;
+  }
+
+  canManage = profile.role === "Logistic";
+
+  el("roleInfo").textContent =
+    `${user.email} | Role: ${profile.role}`;
+
+  el("addBtn").hidden = !canManage;
+
+  await loadEmployees();
+}
+
+async function loadEmployees() {
+  const { data, error } = await db
+    .from("employees")
+    .select("*")
+    .order("employee_id", { ascending: true });
+
+  if (error) {
+    showMessage(error.message, true);
+    return;
+  }
+
+  employees = data || [];
+
+  el("totalCount").textContent = employees.length;
+
+  el("logisticCount").textContent =
+    employees.filter(e =>
+      e.department === "Logistic"
+    ).length;
+
+  el("productionCount").textContent =
+    employees.filter(e =>
+      e.department === "Production"
+    ).length;
+
+  renderEmployees();
+}
+
+function addCell(row, value) {
+  const cell = document.createElement("td");
+  cell.textContent = String(value ?? "");
+  row.appendChild(cell);
+  return cell;
+}
+
+function renderEmployees() {
+  const keyword = el("searchEmployee")
+    .value.toLowerCase().trim();
+
+  const department = el("departmentFilter").value;
+
+  const filtered = employees.filter(e => {
+    const matchText =
+      String(e.employee_id).toLowerCase().includes(keyword) ||
+      String(e.full_name).toLowerCase().includes(keyword);
+
+    const matchDepartment =
+      department === "All" ||
+      e.department === department;
+
+    return matchText && matchDepartment;
+  });
+
+  const tbody = el("employeeRows");
+  tbody.replaceChildren();
+
+  if (!filtered.length) {
+    const row = document.createElement("tr");
+    addCell(row, "No employees found")
+      .colSpan = 6;
+    tbody.appendChild(row);
+    return;
+  }
+
+  for (const employee of filtered) {
+    const row = document.createElement("tr");
+
+    addCell(row, employee.employee_id);
+    addCell(row, employee.full_name);
+    addCell(row, employee.department);
+    addCell(row, employee.position || "-");
+
+    const status = addCell(
+      row,
+      employee.is_active ? "Active" : "Inactive"
+    );
+
+    status.style.color = employee.is_active
+      ? "#6ee7b7" : "#fda4af";
+
+    const action = document.createElement("td");
+
+    if (canManage) {
+      const button = document.createElement("button");
+      button.textContent = "Edit";
+      button.className = "em-btn secondary";
+      button.type = "button";
+      button.addEventListener("click", () =>
+        editEmployee(employee.id)
+      );
+      action.appendChild(button);
+    } else {
+      action.textContent = "View only";
+    }
+
+    row.appendChild(action);
+    tbody.appendChild(row);
+  }
+}
+
+function openNewEmployee() {
+  if (!canManage) return;
+
+  editingId = null;
+  el("employeeForm").reset();
+  el("formTitle").textContent = "Add Employee";
+  el("editor").hidden = false;
+  el("employeeId").focus();
+}
+
+function editEmployee(id) {
+  if (!canManage) return;
+
+  const employee = employees.find(e => e.id === id);
+  if (!employee) return;
+
+  editingId = id;
+
+  el("employeeId").value = employee.employee_id;
+  el("fullName").value = employee.full_name;
+  el("department").value = employee.department;
+  el("position").value = employee.position || "";
+  el("employeeActive").value =
+    String(employee.is_active);
+
+  el("formTitle").textContent = "Edit Employee";
+  el("editor").hidden = false;
+  el("editor").scrollIntoView({ behavior: "smooth" });
+}
+
+async function saveEmployee(event) {
+  event.preventDefault();
+  if (!canManage) return;
+
+  const payload = {
+    employee_id: el("employeeId").value.trim(),
+    full_name: el("fullName").value.trim(),
+    department: el("department").value,
+    position: el("position").value.trim() || null,
+    is_active: el("employeeActive").value === "true"
+  };
+
+  if (!payload.employee_id || !payload.full_name) {
+    showMessage("Employee ID and name are required.", true);
+    return;
+  }
+
+  const saveButton = el("saveBtn");
+  saveButton.disabled = true;
+
+  let result;
+
+  if (editingId) {
+    result = await db
+      .from("employees")
+      .update(payload)
+      .eq("id", editingId);
+  } else {
+    result = await db
+      .from("employees")
+      .insert(payload);
+  }
+
+  saveButton.disabled = false;
+
+  if (result.error) {
+    showMessage(result.error.message, true);
+    return;
+  }
+
+  el("editor").hidden = true;
+  editingId = null;
+
+  showMessage("Employee saved successfully.");
+  await loadEmployees();
+}
+
+el("addBtn").addEventListener("click", openNewEmployee);
+
+el("cancelBtn").addEventListener("click", () => {
+  el("editor").hidden = true;
+  editingId = null;
+});
+
+el("employeeForm").addEventListener(
+  "submit", saveEmployee
+);
+
+el("searchEmployee").addEventListener(
+  "input", renderEmployees
+);
+
+el("departmentFilter").addEventListener(
+  "change", renderEmployees
+);
+
+el("refreshBtn").addEventListener(
+  "click", loadEmployees
+);
+
+init();
+</script>
+
+</body>
+</html>
