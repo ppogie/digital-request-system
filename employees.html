@@ -219,15 +219,49 @@ body {
   <h2>Digital Production Request</h2>
   <p>Raw Material Request System</p>
 
-  <nav class="em-nav">
-    <a href="index.html">Dashboard</a>
-    <a href="logistic.html">Logistic Approval</a>
-    <a href="issuing.html">Material Issuing</a>
-    <a href="receipt.html">Email Receipt</a>
-    <a href="employees.html" class="active">
-      Employee Management
-    </a>
-  </nav>
+ 
+<nav class="em-nav">
+
+  <a href="index.html#dashboard">
+    Dashboard
+  </a>
+
+  <!-- STAFF ONLY -->
+
+  <a href="index.html#request"
+     id="staffRequestNav" hidden>
+    Create Request
+  </a>
+
+  <a href="index.html#history">
+    Request History
+  </a>
+
+  <!-- LOGISTIC ONLY -->
+
+  <a href="logistic.html"
+     class="logistic-only" hidden>
+    Logistic Approval
+  </a>
+
+  <a href="issuing.html"
+     class="logistic-only" hidden>
+    Material Issuing
+  </a>
+
+  <a href="receipt.html"
+     class="logistic-only" hidden>
+    Email Receipt
+  </a>
+
+  <!-- EMPLOYEE MANAGEMENT -->
+
+  <a href="employees.html" class="active">
+    Employee Management
+  </a>
+
+</nav>
+
 </aside>
 
 <main class="em-main">
