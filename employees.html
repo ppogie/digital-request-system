@@ -436,10 +436,27 @@ async function init() {
     return;
   }
 
-  canManage = profile.role === "Logistic";
+ 
+canManage = profile.role === "Logistic";
 
-  el("roleInfo").textContent =
-    `${user.email} | Role: ${profile.role}`;
+// Show Logistic menus only for Logistic users
+document.querySelectorAll(".logistic-only")
+  .forEach(link => {
+    link.hidden = !canManage;
+  });
+
+// Show Create Request only for Staff users
+const staffRequestNav =
+  document.getElementById("staffRequestNav");
+
+if (staffRequestNav) {
+  staffRequestNav.hidden = canManage;
+}
+
+// Display login role
+el("roleInfo").textContent =
+  `${user.email} | Role: ${profile.role}`;
+
 
   el("addBtn").hidden = !canManage;
 
