@@ -1,158 +1,191 @@
 
+/*
+  DIGITAL PRODUCTION REQUEST SYSTEM
+  Dashboard JavaScript - Supabase Version V3
+  Login, Roles, Requests, Search, Employee Menu, Icons
+*/
+
 document.addEventListener("DOMContentLoaded", async () => {
   "use strict";
 
-  const URL = "https://swyzpswrncaghdfnphhc.supabase.co";
-  const KEY = "sb_publishable_Rek9NATddqXIwNN0UQ6cUw_Iuh5aRoE";
+  // 1. SUPABASE CONFIGURATION
 
-  const el = (id) => document.getElementById(id);
-  const form = el("requestForm");
-  const submit = el("submitRequest");
-  const notice = el("authNotice");
-  const nav = el("mainNav");
-  const main = el("appMain");
+  const SUPABASE_URL =
+    "https://swyzpswrncaghdfnphhc.supabase.co";
 
-  // SHOW OR HIDE ELEMENTS
+  const SUPABASE_PUBLISHABLE_KEY =
+    "sb_publishable_Rek9NATddqXIwNN0UQ6cUw_Iuh5aRoE";
 
-  function visible(node, show) {
-    if (!node) return;
-    node.hidden = !show;
-    node.style.display = show ? "" : "none";
+  // 2. HTML ELEMENTS
+
+  const byId = (id) => document.getElementById(id);
+
+  const notice = byId("authNotice");
+  const navigation = byId("mainNav");
+  const main = byId("appMain");
+  const form = byId("requestForm");
+  const submitButton = byId("submitRequest");
+  const feedback = byId("requestFeedback");
+  const requestList = byId("requestList");
+  const logoutButton = byId("logoutButton");
+
+  let currentUser = null;
+  let role = null;
+  let cachedRequests = [];
+
+  // 3. HELPER FUNCTIONS
+
+  function setVisible(id, visible) {
+    const element = byId(id);
+    if (!element) return;
+
+    element.hidden = !visible;
+
+    if (!visible) {
+      element.style.display = "none";
+    } else {
+      element.style.removeProperty("display");
+    }
   }
 
-  // REQUEST FEEDBACK
+  function showError(message) {
+    console.error("DPR Dashboard:", message);
 
-  function message(text, isError = false) {
-    let feedback = el("requestFeedback");
+    if (notice) {
+      notice.replaceChildren();
 
-    if (!feedback && form) {
-      feedback = document.createElement("p");
-      feedback.id = "requestFeedback";
-      form.after(feedback);
+      notice.appendChild(
+        document.createTextNode(message + " ")
+      );
+
+      const link = document.createElement("a");
+      link.href = "login.html";
+      link.textContent = "Go to Login";
+
+      notice.appendChild(link);
+      notice.classList.add("error");
+      notice.hidden = false;
+      notice.style.removeProperty("display");
     }
 
-    if (feedback) {
-      feedback.textContent = text;
-      feedback.style.color = isError
-        ? "#a32121"
-        : "#08623e";
-    }
+    setVisible("mainNav", false);
+    setVisible("appMain", false);
   }
 
-  // ERROR HANDLING
+  function setFeedback(message, isError = false) {
+    if (!feedback) return;
 
-  function showError(text) {
-    console.error(text);
-
-    let box = notice;
-
-    if (!box) {
-      box = document.createElement("p");
-      (main || document.body).prepend(box);
-    }
-
-    box.textContent = text + " ";
-
-    const link = document.createElement("a");
-    link.href = "login.html";
-    link.textContent = "Go to Login";
-    box.appendChild(link);
-
-    visible(box, true);
-    visible(nav, false);
-
-    if (main && box !== main) {
-      visible(main, true);
-    }
-
-    document.body.style.visibility = "visible";
+    feedback.textContent = message;
+    feedback.style.color = isError
+      ? "#fb7185"
+      : "#5eead4";
   }
 
-  // LOCAL DATE
+  function setToday() {
+    const dateInput = byId("requestDate");
+    if (!dateInput) return;
 
-  function localToday() {
-    const date = new Date();
+    const now = new Date();
 
-    return [
-      date.getFullYear(),
-      String(date.getMonth() + 1).padStart(2, "0"),
-      String(date.getDate()).padStart(2, "0")
-    ].join("-");
+    const year = now.getFullYear();
+    const month = String(
+      now.getMonth() + 1
+    ).padStart(2, "0");
+
+    const day = String(
+      now.getDate()
+    ).padStart(2, "0");
+
+    dateInput.value = `${year}-${month}-${day}`;
   }
 
-  // CHECK SUPABASE LIBRARY
+  // 4. CONNECT SUPABASE
 
   if (!window.supabase?.createClient) {
     showError(
-      "Supabase library not loaded. Check the script tags in index.html."
+      "Supabase library not loaded. Refresh the page."
     );
     return;
   }
 
-  // REUSE ONE SUPABASE CLIENT
-
-  const db = window.dprClient ||
-    window.supabase.createClient(URL, KEY);
-
-  window.dprClient = db;
-
-  // VERIFY LOGIN
-
-  let user;
+  let db;
 
   try {
-    const { data, error } = await db.auth.getUser();
+    db = window.dprClient ||
+      window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_PUBLISHABLE_KEY
+      );
 
-    if (error) throw error;
+    window.dprClient = db;
 
-    if (!data.user) {
-      location.replace("login.html");
+  } catch (error) {
+    showError(
+      "Supabase connection failed: " + error.message
+    );
+    return;
+  }
+
+  // 5. VERIFY LOGIN
+
+  try {
+    const {
+      data: auth,
+      error: authError
+    } = await db.auth.getUser();
+
+    if (authError) throw authError;
+
+    if (!auth?.user) {
+      window.location.replace("login.html");
       return;
     }
 
-    user = data.user;
+    currentUser = auth.user;
 
-  } catch (error) {
-    showError("Login check failed: " + error.message);
-    return;
-  }
+    // CHECK USER ROLE
 
-  // CHECK USER ROLE
-
-  let role;
-
-  try {
-    const { data, error } = await db
+    const {
+      data: profile,
+      error: profileError
+    } = await db
       .from("profiles")
       .select("role")
-      .eq("id", user.id)
+      .eq("id", currentUser.id)
       .single();
 
-    if (error) throw error;
+    if (profileError) throw profileError;
 
-    role = data.role;
+    role = profile?.role;
 
     if (!["Staff", "Logistic"].includes(role)) {
-      throw Error("Unknown user role");
+      throw new Error(
+        "Your account role is not supported yet."
+      );
     }
 
   } catch (error) {
-    showError("Cannot read role: " + error.message);
+    showError(
+      "Cannot verify login or user role: " +
+      error.message
+    );
     return;
   }
 
-  const isStaff = role === "Staff";
   const isLogistic = role === "Logistic";
+  const isStaff = role === "Staff";
 
-  // STAFF NAVIGATION
+  // 6. STAFF NAVIGATION
 
   [
     "staffNavLink",
     "staffQuickLink",
     "request"
-  ].forEach((id) => visible(el(id), isStaff));
+  ].forEach((id) => {
+    setVisible(id, isStaff);
+  });
 
-  // LOGISTIC NAVIGATION
+  // 7. LOGISTIC NAVIGATION
 
   [
     "logisticNavLink",
@@ -164,62 +197,344 @@ document.addEventListener("DOMContentLoaded", async () => {
     "logisticDashboardCard",
     "issuingDashboardCard",
     "receiptDashboardCard"
-  ].forEach((id) => visible(el(id), isLogistic));
+  ].forEach((id) => {
+    setVisible(id, isLogistic);
+  });
 
-  // WELCOME MESSAGE
+  // 8. WELCOME MESSAGE
 
-  if (el("welcomeMessage")) {
-    el("welcomeMessage").textContent =
-      `Signed in: ${user.email} (${role})`;
+  const welcome = byId("welcomeMessage");
+
+  if (welcome) {
+    welcome.textContent =
+      `Signed in as ${currentUser.email} (${role})`;
   }
 
-  // SHOW DASHBOARD
+  // 9. EMPLOYEE MANAGEMENT MENU
 
-  visible(notice, false);
-  visible(nav, true);
-  visible(main, true);
+  function addEmployeeLinks() {
+    if (!isLogistic || !navigation) return;
+
+    const navArea =
+      navigation.querySelector(".sidebar-nav") ||
+      navigation;
+
+    let link =
+      byId("employeeNavLink") ||
+      navArea.querySelector(
+        'a[href="employees.html"]'
+      );
+
+    if (!link) {
+      link = document.createElement("a");
+
+      link.id = "employeeNavLink";
+      link.href = "employees.html";
+      link.textContent = "Employee Management";
+
+      const receiptLink = navArea.querySelector(
+        '#receiptNavLink, a[href="receipt.html"]'
+      );
+
+      if (receiptLink) {
+        receiptLink.after(link);
+      } else {
+        navArea.appendChild(link);
+      }
+    }
+
+    link.hidden = false;
+
+    // ADD EMPLOYEE MANAGEMENT TO QUICK ACCESS
+
+    const receiptQuick = byId("receiptQuickLink");
+
+    const quickArea =
+      receiptQuick?.closest(
+        ".quick-links, .quick-access-grid, " +
+        ".quick-access, .quick-grid"
+      ) ||
+      document.querySelector(
+        "#dashboard .quick-links"
+      );
+
+    if (quickArea && !byId("employeeQuickLink")) {
+      const quickLink = document.createElement("a");
+
+      quickLink.id = "employeeQuickLink";
+      quickLink.href = "employees.html";
+      quickLink.textContent = "Employee Management";
+
+      quickArea.appendChild(quickLink);
+    }
+  }
+
+  // 10. SIDEBAR SVG ICONS
+
+  function decorateSidebar() {
+    if (!navigation) return;
+
+    const navArea =
+      navigation.querySelector(".sidebar-nav") ||
+      navigation;
+
+    const shapes = {
+      dashboard:
+        '<rect x="3" y="3" width="7" height="7" rx="1"/>' +
+        '<rect x="14" y="3" width="7" height="7" rx="1"/>' +
+        '<rect x="3" y="14" width="7" height="7" rx="1"/>' +
+        '<rect x="14" y="14" width="7" height="7" rx="1"/>',
+
+      create:
+        '<path d="M8 3h8l5 5v13H3V3z"/>' +
+        '<path d="M16 3v5h5M12 12v6M9 15h6"/>',
+
+      history:
+        '<path d="M3 12a9 9 0 1 0 3-6.7' +
+        'M3 3v5h5M12 7v5l4 2"/>',
+
+      approval:
+        '<rect x="5" y="4" width="14" height="17" rx="2"/>' +
+        '<path d="M9 4.5h6m-6 9 2 2 4-4"/>',
+
+      issuing:
+        '<path d="m3 7 9-4 9 4-9 4z' +
+        'M3 7v10l9 4 9-4V7' +
+        'M12 11v10m4-6 2 2 3-3"/>',
+
+      receipt:
+        '<rect x="3" y="5" width="18" height="14" rx="2"/>' +
+        '<path d="m3 7 9 6 9-6"/>',
+
+      employees:
+        '<circle cx="9" cy="8" r="3"/>' +
+        '<path d="M3 20v-2a6 6 0 0 1 12 0v2' +
+        'M17 5a3 3 0 0 1 0 6' +
+        'm1 3a5 5 0 0 1 3 5"/>',
+
+      logout:
+        '<path d="m10 17 5-5-5-5' +
+        'M15 12H3' +
+        'M12 3h6a3 3 0 0 1 3 3v12' +
+        'a3 3 0 0 1-3 3h-6"/>'
+    };
+
+    // CREATE SVG
+
+    function icon(type) {
+      const svg = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "svg"
+      );
+
+      svg.setAttribute("class", "dpr-menu-icon");
+      svg.setAttribute("viewBox", "0 0 24 24");
+      svg.setAttribute("width", "19");
+      svg.setAttribute("height", "19");
+      svg.setAttribute("fill", "none");
+      svg.setAttribute("stroke", "currentColor");
+      svg.setAttribute("stroke-width", "1.8");
+      svg.setAttribute("stroke-linecap", "round");
+      svg.setAttribute("stroke-linejoin", "round");
+      svg.setAttribute("aria-hidden", "true");
+
+      svg.innerHTML = shapes[type];
+
+      // PREVENT OVERSIZED ICONS
+
+      [
+        "width",
+        "height",
+        "min-width",
+        "min-height",
+        "max-width",
+        "max-height"
+      ].forEach((prop) => {
+        svg.style.setProperty(
+          prop,
+          "19px",
+          "important"
+        );
+      });
+
+      svg.style.setProperty(
+        "flex-shrink",
+        "0",
+        "important"
+      );
+
+      svg.style.setProperty(
+        "fill",
+        "none",
+        "important"
+      );
+
+      return svg;
+    }
+
+    // IDENTIFY MENU ICONS
+
+    for (const link of navArea.querySelectorAll("a")) {
+      const label =
+        (link.textContent || "").trim().toLowerCase();
+
+      const href =
+        (link.getAttribute("href") || "").toLowerCase();
+
+      let type = null;
+
+      if (
+        href.includes("employees.html") ||
+        label.includes("employee")
+      ) {
+        type = "employees";
+
+      } else if (
+        href.includes("logistic.html") ||
+        label.includes("approval")
+      ) {
+        type = "approval";
+
+      } else if (
+        href.includes("issuing.html") ||
+        label.includes("issuing")
+      ) {
+        type = "issuing";
+
+      } else if (
+        href.includes("receipt.html") ||
+        label.includes("receipt")
+      ) {
+        type = "receipt";
+
+      } else if (
+        href === "#history" ||
+        label.includes("history")
+      ) {
+        type = "history";
+
+      } else if (
+        href === "#request" ||
+        label.includes("create")
+      ) {
+        type = "create";
+
+      } else if (
+        href === "#dashboard" ||
+        label === "dashboard"
+      ) {
+        type = "dashboard";
+      }
+
+      if (!type) continue;
+
+      // REMOVE OLD ICONS ONLY
+
+      link.querySelectorAll(
+        "svg, i, .nav-icon, .menu-icon"
+      ).forEach((node) => node.remove());
+
+      link.prepend(icon(type));
+
+      link.style.display =
+        link.hidden ? "none" : "flex";
+
+      link.style.alignItems = "center";
+      link.style.gap = "12px";
+    }
+
+    // LOGOUT ICON
+
+    if (
+      logoutButton &&
+      !logoutButton.querySelector(".dpr-menu-icon")
+    ) {
+      logoutButton.prepend(icon("logout"));
+
+      logoutButton.style.display = "flex";
+      logoutButton.style.alignItems = "center";
+      logoutButton.style.justifyContent = "center";
+      logoutButton.style.gap = "10px";
+    }
+  }
+
+  // 11. ACTIVE SIDEBAR MENU
+
+  function updateActiveMenu() {
+    if (!navigation) return;
+
+    const hash =
+      window.location.hash || "#dashboard";
+
+    const navArea =
+      navigation.querySelector(".sidebar-nav") ||
+      navigation;
+
+    const links = navArea.querySelectorAll(
+      'a[href^="#"]'
+    );
+
+    links.forEach((link) => {
+      const active =
+        link.getAttribute("href") === hash;
+
+      link.classList.toggle("active", active);
+
+      if (active) {
+        link.setAttribute("aria-current", "page");
+      } else {
+        link.removeAttribute("aria-current");
+      }
+    });
+  }
+
+  addEmployeeLinks();
+  decorateSidebar();
+  updateActiveMenu();
+
+  window.addEventListener(
+    "hashchange",
+    updateActiveMenu
+  );
+
+  // 12. SHOW DASHBOARD
+
+  if (notice) {
+    notice.hidden = true;
+    notice.style.display = "none";
+  }
+
+  setVisible("mainNav", true);
+  setVisible("appMain", true);
 
   document.body.style.visibility = "visible";
 
-  // REQUEST HISTORY CONTAINER
+  // 13. REQUEST HISTORY SEARCH & FILTER
 
-  let list = el("requestList");
-
-  if (!list && form) {
-    list = document.createElement("div");
-    list.id = "requestList";
-    form.after(list);
-  }
-
-  // DISPLAY REQUEST HISTORY
+  const searchInput = byId("requestSearch");
+  const statusFilter = byId("requestStatusFilter");
 
   function renderRequests(rows) {
-    if (!list) return;
+    if (!requestList) return;
 
-    list.replaceChildren();
-
-    const heading = document.createElement("h3");
-    heading.textContent = isLogistic
-      ? "All Requests"
-      : "My Request History";
-
-    list.appendChild(heading);
+    requestList.replaceChildren();
 
     if (!rows.length) {
-      const p = document.createElement("p");
-      p.textContent = "No requests found.";
-      list.appendChild(p);
+      const empty = document.createElement("p");
+
+      empty.textContent = "No requests found.";
+      requestList.appendChild(empty);
       return;
     }
 
-    const wrap = document.createElement("div");
-    wrap.className = "table-container";
+    const wrapper = document.createElement("div");
+    wrapper.className = "table-container";
 
     const table = document.createElement("table");
     table.className = "request-table";
 
     const thead = document.createElement("thead");
-    const top = document.createElement("tr");
+    const headRow = document.createElement("tr");
 
     [
       "Request ID",
@@ -228,343 +543,291 @@ document.addEventListener("DOMContentLoaded", async () => {
       "Product Model",
       "Quantity",
       "Status"
-    ].forEach((name) => {
+    ].forEach((label) => {
       const th = document.createElement("th");
-      th.textContent = name;
-      top.appendChild(th);
+
+      th.textContent = label;
+      headRow.appendChild(th);
     });
 
-    thead.appendChild(top);
+    thead.appendChild(headRow);
     table.appendChild(thead);
 
     const tbody = document.createElement("tbody");
 
-    rows.forEach((row) => {
+    rows.forEach((request) => {
       const tr = document.createElement("tr");
 
-      [
-        row.request_id,
-        row.request_date,
-        row.staff_id,
-        row.product_model,
-        row.production_quantity,
-        row.status
-      ].forEach((value) => {
+      const values = [
+        request.request_id,
+        request.request_date,
+        request.staff_id,
+        request.product_model,
+        request.production_quantity
+      ];
+
+      values.forEach((value) => {
         const td = document.createElement("td");
+
         td.textContent = String(value ?? "");
         tr.appendChild(td);
       });
+
+      const td = document.createElement("td");
+      const badge = document.createElement("span");
+
+      badge.className =
+        "status-pill " +
+        String(request.status || "").toLowerCase();
+
+      badge.textContent =
+        request.status || "Unknown";
+
+      td.appendChild(badge);
+      tr.appendChild(td);
 
       tbody.appendChild(tr);
     });
 
     table.appendChild(tbody);
-    wrap.appendChild(table);
-    list.appendChild(wrap);
+    wrapper.appendChild(table);
+    requestList.appendChild(wrapper);
   }
 
-  // LOAD REQUESTS FROM DATABASE
+  function filterRequests() {
+    const keyword =
+      (searchInput?.value || "")
+        .trim()
+        .toLowerCase();
 
-// REQUEST HISTORY SEARCH AND FILTER
+    const selectedStatus =
+      statusFilter?.value || "All";
 
-let cachedRequests = [];
+    const filtered = cachedRequests.filter((r) => {
+      const matchesText = [
+        r.request_id,
+        r.staff_id,
+        r.product_model
+      ].some((value) =>
+        String(value ?? "")
+          .toLowerCase()
+          .includes(keyword)
+      );
 
-const requestSearch =
-  document.getElementById("requestSearch");
+      const matchesStatus =
+        selectedStatus === "All" ||
+        r.status === selectedStatus;
 
-const requestStatusFilter =
-  document.getElementById("requestStatusFilter");
+      return matchesText && matchesStatus;
+    });
 
-function filterRequests() {
-  const keyword = (requestSearch?.value || "")
-    .trim()
-    .toLowerCase();
+    renderRequests(filtered);
+  }
 
-  const status =
-    requestStatusFilter?.value || "All";
+  searchInput?.addEventListener(
+    "input",
+    filterRequests
+  );
 
-  const filtered = cachedRequests.filter((r) => {
-    const matchesSearch = [
-      r.request_id,
-      r.staff_id,
-      r.product_model
-    ].some((value) =>
-      String(value ?? "").toLowerCase().includes(keyword)
-    );
+  statusFilter?.addEventListener(
+    "change",
+    filterRequests
+  );
 
-    const matchesStatus =
-      status === "All" || r.status === status;
-
-    return matchesSearch && matchesStatus;
-  });
-
-  renderRequests(filtered);
-}
-
-requestSearch?.addEventListener("input", filterRequests);
-
-requestStatusFilter?.addEventListener(
-  "change",
-  filterRequests
-);
+  // 14. LOAD REQUESTS FROM SUPABASE
 
   async function loadRequests() {
-    if (list) {
-      list.textContent = "Loading requests...";
-    }
-
-    let query = db
-      .from("requests")
-      .select(
-        "request_id,request_date,requested_by,staff_id," +
-        "product_model,production_quantity,status,created_at"
-      )
-      .order("created_at", { ascending: false });
-
-    if (isStaff) {
-      query = query.eq("requested_by", user.id);
+    if (requestList) {
+      requestList.textContent = "Loading requests...";
     }
 
     try {
+      let query = db
+        .from("requests")
+        .select(
+          "request_id,request_date,requested_by," +
+          "staff_id,product_model," +
+          "production_quantity,status,created_at"
+        )
+        .order("created_at", { ascending: false });
+
+      // STAFF ONLY VIEW THEIR OWN REQUESTS
+
+      if (isStaff) {
+        query = query.eq(
+          "requested_by",
+          currentUser.id
+        );
+      }
+
       const { data, error } = await query;
 
       if (error) throw error;
 
-      const rows = data || [];
-
-cachedRequests = rows;
-filterRequests();
+      cachedRequests = data || [];
 
       // DASHBOARD STATISTICS
 
-      for (const status of [
+      [
         "Pending",
         "Approved",
         "Rejected"
-      ]) {
-        const node = el(
+      ].forEach((status) => {
+        const counter = byId(
           status.toLowerCase() + "Count"
         );
 
-        if (node) {
-          node.textContent = String(
-            rows.filter(
+        if (counter) {
+          counter.textContent = String(
+            cachedRequests.filter(
               (r) => r.status === status
             ).length
           );
         }
-      }
+      });
+
+      filterRequests();
 
     } catch (error) {
-      if (list) {
-        list.textContent =
-          "Cannot load requests: " + error.message;
-      }
+      console.error(
+        "Cannot load requests:",
+        error
+      );
 
-      console.error(error);
+      if (requestList) {
+        requestList.textContent =
+          "Cannot load requests: " +
+          error.message;
+      }
     }
   }
 
-  // CREATE REQUEST - STAFF ONLY
+  // 15. CREATE REQUEST - STAFF ONLY
 
-  if (isStaff && form && submit) {
-    const dateInput = el("requestDate");
+  if (isStaff && form && submitButton) {
+    setToday();
 
-    if (dateInput && !dateInput.value) {
-      dateInput.value = localToday();
-    }
+    submitButton.disabled = false;
+    submitButton.type = "submit";
 
-    // FIX THE ORIGINAL BUTTON TYPE
+    form.addEventListener(
+      "submit",
+      async (event) => {
+        event.preventDefault();
 
-    submit.type = "submit";
-    submit.disabled = false;
+        if (submitButton.disabled) return;
+        if (!form.reportValidity()) return;
 
-    form.addEventListener("submit", async (event) => {
-      event.preventDefault();
+        const requestId =
+          byId("requestId")?.value.trim() || "";
 
-      if (!form.reportValidity() || submit.disabled) {
-        return;
-      }
+        const requestDate =
+          byId("requestDate")?.value || "";
 
-      const request = {
-        request_id: el("requestId")?.value.trim(),
-        request_date: el("requestDate")?.value,
-        requested_by: user.id,
-        staff_id: el("staffId")?.value.trim(),
-        product_model: el("productModel")?.value.trim(),
-        production_quantity: Number(
-          el("productionQuantity")?.value
-        ),
-        remarks: el("remarks")?.value.trim() || "",
-        status: "Pending"
-      };
+        const staffId =
+          byId("staffId")?.value.trim() || "";
 
-      // VALIDATION
+        const productModel =
+          byId("productModel")?.value.trim() || "";
 
-      if (
-        !request.request_id ||
-        !request.request_date ||
-        !request.staff_id ||
-        !request.product_model ||
-        !Number.isSafeInteger(request.production_quantity) ||
-        request.production_quantity < 1
-      ) {
-        message(
-          "Please complete all fields correctly.",
-          true
+        const productionQuantity = Number(
+          byId("productionQuantity")?.value
         );
-        return;
-      }
 
-      submit.disabled = true;
-      message("Submitting request...");
+        const remarks =
+          byId("remarks")?.value.trim() || "";
 
-      try {
-        const { error } = await db
-          .from("requests")
-          .insert(request);
+        // VALIDATION
 
-        if (error) throw error;
-
-        form.reset();
-
-        if (dateInput) {
-          dateInput.value = localToday();
+        if (
+          !requestId ||
+          !requestDate ||
+          !staffId ||
+          !productModel ||
+          !Number.isSafeInteger(productionQuantity) ||
+          productionQuantity < 1
+        ) {
+          setFeedback(
+            "Please complete all required fields correctly.",
+            true
+          );
+          return;
         }
 
-        message(
-          "Request submitted to Supabase successfully!"
-        );
+        submitButton.disabled = true;
+        setFeedback("Submitting request...");
 
-        await loadRequests();
+        try {
+          const { error } = await db
+            .from("requests")
+            .insert({
+              request_id: requestId,
+              request_date: requestDate,
+              requested_by: currentUser.id,
+              staff_id: staffId,
+              product_model: productModel,
+              production_quantity: productionQuantity,
+              remarks: remarks,
+              status: "Pending"
+            });
 
-      } catch (error) {
-        message(
-          error.code === "23505"
-            ? "Request ID already exists."
-            : "Submission failed: " + error.message,
-          true
-        );
+          if (error) throw error;
 
-      } finally {
-        submit.disabled = false;
+          form.reset();
+          setToday();
+
+          setFeedback(
+            "Request submitted successfully!"
+          );
+
+          await loadRequests();
+
+        } catch (error) {
+          const message =
+            error.code === "23505"
+              ? "Request ID already exists. Enter another Request ID."
+              : "Unable to submit: " + error.message;
+
+          setFeedback(message, true);
+
+        } finally {
+          submitButton.disabled = false;
+        }
       }
-    });
+    );
   }
 
-  // LOGOUT
+  // 16. LOGOUT
 
-  const logout = el("logoutButton");
-
-  if (logout) {
-    logout.addEventListener("click", async () => {
-      logout.disabled = true;
+  logoutButton?.addEventListener(
+    "click",
+    async () => {
+      logoutButton.disabled = true;
 
       try {
         const { error } = await db.auth.signOut();
 
         if (error) throw error;
 
-        location.replace("login.html");
+        window.location.replace("login.html");
 
       } catch (error) {
-        message(
-          "Logout failed: " + error.message,
-          true
+        logoutButton.disabled = false;
+
+        alert(
+          "Unable to log out: " +
+          error.message
         );
-
-        logout.disabled = false;
       }
-    });
-  }
+    }
+  );
 
-  // SYSTEM READY
-
-  console.log("DPR DASHBOARD FIX V2 - role:", role);
+  // 17. INITIAL LOAD
 
   await loadRequests();
+
+  console.log(
+    "DPR DASHBOARD FIX V3 - role:",
+    role
+  );
 });
-
-/* PREMIUM DASHBOARD SIDEBAR */
-
-#mainNav .sidebar-nav {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
-
-#mainNav .sidebar-nav a {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-
-  padding: 13px 15px;
-  min-height: 46px;
-
-  color: #cbd5e1;
-  text-decoration: none;
-
-  border-radius: 10px;
-  border-left: 3px solid transparent;
-
-  font-size: 14px;
-  font-weight: 500;
-
-  transition:
-    background 0.2s ease,
-    color 0.2s ease,
-    transform 0.2s ease;
-}
-
-/* ICON SIZE FIX */
-
-#mainNav .sidebar-nav a > svg.dpr-menu-icon,
-#logoutButton > svg.dpr-menu-icon {
-  display: inline-block !important;
-
-  width: 19px !important;
-  height: 19px !important;
-
-  min-width: 19px !important;
-  max-width: 19px !important;
-  min-height: 19px !important;
-  max-height: 19px !important;
-
-  flex-shrink: 0;
-  fill: none !important;
-  stroke: currentColor !important;
-}
-
-#mainNav .sidebar-nav a svg.dpr-menu-icon *,
-#logoutButton svg.dpr-menu-icon * {
-  fill: none !important;
-  stroke: currentColor !important;
-}
-
-/* HOVER */
-
-#mainNav .sidebar-nav a:hover {
-  background: #1e3044;
-  color: #5eead4;
-  transform: translateX(3px);
-}
-
-/* ACTIVE MENU */
-
-#mainNav .sidebar-nav a.active,
-#mainNav .sidebar-nav a[aria-current="page"] {
-  background: #164e4a !important;
-  color: #5eead4 !important;
-
-  border-left-color: #2dd4bf;
-  font-weight: 600;
-}
-
-/* LOGOUT */
-
-#logoutButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-}
