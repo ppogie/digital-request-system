@@ -1,0 +1,201 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+  <title>Material Return | DPR</title>
+  <link rel="stylesheet" href="dpr-theme.css">
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      display: grid;
+      grid-template-columns: 245px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    aside {
+      padding: 26px 15px;
+      background: #0f172a;
+      border-right: 1px solid #293548;
+    }
+
+    aside h2 { font-size: 18px; }
+    aside p { color: #94a3b8; font-size: 12px; }
+
+    nav {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 28px;
+    }
+
+    nav a {
+      color: #cbd5e1;
+      text-decoration: none;
+      padding: 13px;
+      border-radius: 9px;
+    }
+
+    nav a.active {
+      background: #164e4a;
+      color: #5eead4;
+    }
+
+    main { min-width: 0; padding: 35px; }
+
+    .card {
+      background: #151f32;
+      border: 1px solid #293548;
+      border-radius: 14px;
+      padding: 24px;
+      margin-top: 20px;
+    }
+
+    .muted { color: #94a3b8; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 14px;
+      border-bottom: 1px solid #293548;
+    }
+
+    .table-wrap { overflow-x: auto; }
+
+    [hidden] { display: none !important; }
+
+    @media (max-width: 768px) {
+      body { display: block; }
+      aside { padding: 18px; }
+      main { padding: 18px; }
+    }
+  </style>
+</head>
+
+<body>
+
+<aside>
+  <h2>Digital Production Request</h2>
+  <p>Raw Material Request System</p>
+
+  <nav>
+    <a href="index.html">Dashboard</a>
+    <a href="material-return.html" class="active">
+      ↩ Material Return
+    </a>
+  </nav>
+</aside>
+
+<main>
+  <h1>Material Return</h1>
+  <p class="muted">
+    Track material returns from Production to Logistic.
+  </p>
+
+  <p id="roleInfo">Checking login...</p>
+
+  <section class="card">
+    <h2>Return History</h2>
+    <p class="muted">
+      Existing return records will appear here.
+    </p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Return ID</th>
+            <th>Submitted At</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="returnRows">
+          <tr><td colspan="3">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  const db = window.supabase.createClient(
+    "https://swyzpswrncaghdfnphhc.supabase.co",
+    ""sb_publishable_Rek9NATddqXIwNN0UQ6cUw_Iuh5aRoE""
+  );
+
+  const roleInfo = document.getElementById("roleInfo");
+  const rows = document.getElementById("returnRows");
+
+  const { data: auth, error: authError } =
+    await db.auth.getUser();
+
+  if (authError || !auth?.user) {
+    location.replace("login.html");
+    return;
+  }
+
+  const { data: profile, error: roleError } =
+    await db.from("profiles")
+      .select("role")
+      .eq("id", auth.user.id)
+      .single();
+
+  if (roleError ||
+      !["Logistic", "Production"].includes(profile?.role)) {
+    roleInfo.textContent = "Access denied.";
+    rows.innerHTML = '<tr><td colspan="3">Access denied</td></tr>';
+    return;
+  }
+
+  roleInfo.textContent = "Role: " + profile.role;
+
+  const { data, error } = await db
+    .from("material_returns")
+    .select("return_no, submitted_at, status")
+    .order("submitted_at", { ascending: false });
+
+  rows.replaceChildren();
+
+  if (error || !data?.length) {
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = 3;
+    td.textContent = error
+      ? "Error: " + error.message
+      : "No material returns yet.";
+    tr.appendChild(td);
+    rows.appendChild(tr);
+    return;
+  }
+
+  for (const item of data) {
+    const tr = document.createElement("tr");
+
+    for (const value of [
+      item.return_no,
+      new Date(item.submitted_at).toLocaleString(),
+      item.status
+    ]) {
+      const td = document.createElement("td");
+      td.textContent = value ?? "";
+      tr.appendChild(td);
+    }
+
+    rows.appendChild(tr);
+  }
+});
+</script>
+</body>
+</html>
