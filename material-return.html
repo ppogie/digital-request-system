@@ -3,261 +3,550 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Material Return | DPR</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Material Return | Digital Production Request</title>
 
 <link rel="stylesheet" href="dpr-theme.css">
 
 <style>
-* { box-sizing:border-box; }
+:root {
+  --bg: #0b1120;
+  --sidebar: #0f172a;
+  --card: #151f32;
+  --field: #101b2d;
+  --border: #293548;
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+  --accent: #2dd4bf;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
 
 body {
-  margin:0;
-  display:grid;
-  grid-template-columns:245px minmax(0,1fr);
-  min-height:100vh;
-  font-family:Arial,sans-serif;
-  background:#0b1120;
-  color:#f1f5f9;
+  margin: 0;
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 245px minmax(0, 1fr);
+  background: var(--bg);
+  color: var(--text);
+  font-family: Arial, sans-serif;
 }
+
+/* SIDEBAR */
 
 .sidebar {
-  background:#0f172a;
-  border-right:1px solid #293548;
-  padding:26px 15px;
+  background: var(--sidebar);
+  border-right: 1px solid var(--border);
+  padding: 25px 15px;
+  min-height: 100vh;
 }
 
-.sidebar h2 {
-  font-size:18px;
-  line-height:1.4;
-  margin:0 0 9px;
+.brand {
+  padding: 5px 10px 20px;
 }
 
-.sidebar p {
-  color:#94a3b8;
-  font-size:12px;
-  margin-bottom:28px;
+.brand h2 {
+  color: white;
+  font-size: 18px;
+  line-height: 1.4;
+  margin: 0;
 }
 
-.sidebar nav {
-  display:flex;
-  flex-direction:column;
-  gap:7px;
+.brand p {
+  font-size: 12px;
+  color: var(--muted);
 }
 
-.sidebar nav a {
-  display:flex;
-  align-items:center;
-  padding:13px;
-  border-radius:9px;
-  color:#cbd5e1;
-  text-decoration:none;
-  font-size:14px;
+.side-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
 }
 
-.sidebar nav a:hover {
-  background:#243247;
+.side-menu a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px;
+  color: #cbd5e1;
+  text-decoration: none;
+  border-radius: 10px;
+  font-size: 14px;
 }
 
-.sidebar nav a.active {
-  background:#164e4a;
-  color:#5eead4;
+.side-menu a:hover {
+  background: #243247;
+  color: #5eead4;
 }
 
-main {
-  padding:35px;
-  min-width:0;
+.side-menu a.active {
+  background: #164e4a;
+  color: #5eead4;
+  border-left: 3px solid var(--accent);
 }
 
-h1 { margin:0 0 8px; }
+.side-menu svg {
+  width: 19px !important;
+  height: 19px !important;
+  min-width: 19px !important;
+  max-width: 19px !important;
+  flex-shrink: 0;
+  fill: none !important;
+  stroke: currentColor !important;
+}
+
+/* MAIN CONTENT */
+
+.main {
+  min-width: 0;
+  padding: 35px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 25px;
+}
+
+.page-header h1 {
+  color: white;
+  margin: 0 0 8px;
+  font-size: 26px;
+}
 
 .subtitle {
-  font-size:14px;
-  color:#94a3b8;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
 }
 
+.role-tag {
+  padding: 10px 16px;
+  background: #164e4a;
+  color: #5eead4;
+  border-radius: 20px;
+  font-size: 13px;
+}
+
+/* CARDS */
+
 .card {
-  background:#151f32;
-  border:1px solid #293548;
-  border-radius:14px;
-  padding:25px;
-  margin-top:22px;
+  background: var(--card) !important;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  padding: 25px;
+  margin-bottom: 22px;
 }
 
 .card h2 {
-  margin-top:0;
-  font-size:20px;
+  color: white;
+  margin: 0 0 10px;
+  font-size: 20px;
 }
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+/* FORM */
 
 .form-grid {
-  display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:18px;
-  margin-top:20px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
 }
 
-.full { grid-column:1 / -1; }
+.full {
+  grid-column: 1 / -1;
+}
 
 label {
-  display:block;
-  margin-bottom:8px;
-  color:#cbd5e1;
-  font-size:13px;
+  display: block;
+  font-size: 13px;
+  color: #cbd5e1;
+  margin-bottom: 8px;
 }
 
-input,select,textarea {
-  width:100%;
-  padding:13px;
-  background:#101b2d;
-  color:white;
-  border:1px solid #334155;
-  border-radius:9px;
-  font:inherit;
+input,
+select,
+textarea {
+  width: 100%;
+  background: var(--field) !important;
+  color: white !important;
+  border: 1px solid #334155 !important;
+  border-radius: 9px;
+  padding: 13px;
+  font: inherit;
 }
 
-input:focus,select:focus,textarea:focus {
-  outline:2px solid #2dd4bf;
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid var(--accent);
 }
 
-button {
-  background:#0d9488;
-  color:white;
-  border:0;
-  padding:13px 20px;
-  border-radius:9px;
-  font-weight:bold;
-  cursor:pointer;
+textarea {
+  resize: vertical;
 }
 
-button:disabled {
-  opacity:.55;
-  cursor:not-allowed;
+/* QUANTITY STATS */
+
+.qty-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px;
 }
 
-.stats {
-  display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:15px;
-  margin-top:18px;
+.qty-box {
+  background: var(--field);
+  border: 1px solid var(--border);
+  padding: 20px;
+  border-radius: 12px;
 }
 
-.stat {
-  background:#101b2d;
-  border:1px solid #293548;
-  padding:18px;
-  border-radius:11px;
+.qty-box span {
+  color: var(--muted);
+  font-size: 13px;
 }
 
-.stat strong {
-  display:block;
-  color:#2dd4bf;
-  font-size:27px;
-  margin-top:8px;
+.qty-box strong {
+  display: block;
+  color: var(--accent);
+  font-size: 30px;
+  margin-top: 10px;
 }
 
-.message {
-  padding:12px 15px;
-  border-radius:9px;
-  margin-top:15px;
-  background:#122b38;
-  color:#a5dce5;
+/* BUTTONS */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  border-radius: 9px;
+  padding: 12px 18px;
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
 }
 
-.message.error {
-  background:#422127;
-  color:#fda4af;
+.btn-primary {
+  background: #0d9488;
 }
 
-.table-wrap { overflow-x:auto; }
+.btn-secondary {
+  background: #334155;
+}
+
+.btn-accept {
+  background: #059669;
+}
+
+.btn-reject {
+  background: #be3348;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn:not(:disabled):hover {
+  filter: brightness(1.12);
+}
+
+/* STATUS */
+
+.badge {
+  display: inline-block;
+  padding: 7px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge.pending {
+  background: #514019;
+  color: #fbbf24;
+}
+
+.badge.accepted {
+  background: #124638;
+  color: #6ee7b7;
+}
+
+.badge.rejected {
+  background: #49232e;
+  color: #fda4af;
+}
+
+/* VERIFICATION */
+
+.return-card {
+  background: #101b2d;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.return-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+}
+
+.return-top h3 {
+  margin: 0;
+  font-size: 17px;
+}
+
+.details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.detail-label {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.detail-value {
+  font-size: 14px;
+  color: white;
+  overflow-wrap: anywhere;
+}
+
+.item-box {
+  padding: 15px;
+  margin-bottom: 12px;
+  background: #151f32;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.item-box h4 {
+  margin: 0 0 12px;
+  color: var(--accent);
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 15px;
+}
+
+.actions .btn {
+  flex: 1;
+}
+
+/* TABLE */
+
+.table-wrap {
+  overflow-x: auto;
+}
 
 table {
-  width:100%;
-  min-width:550px;
-  border-collapse:collapse;
+  width: 100%;
+  min-width: 550px;
+  border-collapse: collapse;
 }
 
-th,td {
-  padding:14px;
-  border-bottom:1px solid #293548;
-  text-align:left;
-  font-size:13px;
+th,
+td {
+  padding: 15px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  font-size: 13px;
 }
 
 th {
-  background:#243247;
+  background: #243247;
+  color: white;
 }
 
-.status {
-  color:#fbbf24;
+td {
+  color: #cbd5e1;
 }
 
-[hidden] { display:none !important; }
+/* MESSAGES */
 
-@media(max-width:768px) {
-  body { display:block; }
-  main { padding:18px; }
-  .form-grid,.stats {
-    grid-template-columns:1fr;
+.message {
+  padding: 15px;
+  border: 1px solid #255267;
+  border-radius: 10px;
+  background: #122b38;
+  color: #a5dce5;
+  margin-bottom: 20px;
+}
+
+.message.error {
+  background: #422127;
+  border-color: #7f303b;
+  color: #fda4af;
+}
+
+.empty {
+  color: var(--muted);
+  padding: 18px 0;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 768px) {
+  body {
+    display: block;
   }
-  .full { grid-column:auto; }
+
+  .sidebar {
+    min-height: auto;
+    padding: 18px;
+  }
+
+  .side-menu {
+    flex-direction: row;
+    overflow-x: auto;
+  }
+
+  .side-menu a {
+    white-space: nowrap;
+  }
+
+  .main {
+    padding: 18px;
+  }
+
+  .card {
+    padding: 18px;
+  }
+
+  .form-grid,
+  .details {
+    grid-template-columns: 1fr;
+  }
+
+  .full {
+    grid-column: auto;
+  }
+
+  .page-header h1 {
+    font-size: 22px;
+  }
 }
 </style>
 </head>
 
 <body>
 
+<!-- SIDEBAR -->
+
 <aside class="sidebar">
-  <h2>Digital Production Request</h2>
-  <p>Raw Material Request System</p>
 
-  <nav>
-    <a href="index.html">Dashboard</a>
+  <div class="brand">
+    <h2>Digital Production Request</h2>
+    <p>Raw Material Request System</p>
+  </div>
 
-    <a href="logistic.html"
-       class="logistic-only" hidden>
+  <nav class="side-menu">
+
+    <a href="index.html">
+      <svg viewBox="0 0 24 24" stroke-width="1.8">
+        <rect x="3" y="3" width="7" height="7" rx="1"/>
+        <rect x="14" y="3" width="7" height="7" rx="1"/>
+        <rect x="3" y="14" width="7" height="7" rx="1"/>
+        <rect x="14" y="14" width="7" height="7" rx="1"/>
+      </svg>
+      Dashboard
+    </a>
+
+    <a href="logistic.html" class="logistic-only" hidden>
       Logistic Approval
     </a>
 
-    <a href="issuing.html"
-       class="logistic-only" hidden>
+    <a href="issuing.html" class="logistic-only" hidden>
       Material Issuing
     </a>
 
-    <a href="employees.html"
-       class="logistic-only" hidden>
+    <a href="receipt.html" class="logistic-only" hidden>
+      Email Receipt
+    </a>
+
+    <a href="employees.html" class="logistic-only" hidden>
       Employee Management
     </a>
 
     <a href="material-return.html" class="active">
-      ↩ Material Return
+      <svg viewBox="0 0 24 24" stroke-width="1.8">
+        <path d="M3 7v6h6"/>
+        <path d="M3 13a9 9 0 1 0 3-7"/>
+        <path d="m3 7 3-3"/>
+      </svg>
+      Material Return
     </a>
+
   </nav>
+
 </aside>
 
-<main>
+<!-- MAIN -->
 
-  <h1>Material Return</h1>
-  <p class="subtitle">
-    Return issued raw materials from Production
-    to Logistic.
-  </p>
+<main class="main">
 
-  <p class="subtitle" id="roleInfo">
-    Checking login...
-  </p>
+  <div class="page-header">
+    <div>
+      <h1>Material Return</h1>
+      <p class="subtitle">
+        Production Material Return & Logistic Verification
+      </p>
+      <p class="subtitle" id="loginInfo">
+        Checking login...
+      </p>
+    </div>
 
-  <div id="message" role="status" hidden></div>
+    <span class="role-tag" id="roleTag">
+      Loading...
+    </span>
+  </div>
+
+  <div id="message" class="message" hidden
+       role="status"></div>
 
   <!-- PRODUCTION RETURN FORM -->
 
-  <section id="productionForm" class="card" hidden>
+  <section class="card" id="productionSection" hidden>
 
-    <h2>Create Material Return</h2>
-
-    <p class="subtitle">
-      Select an issued material and enter the quantity
-      to return.
-    </p>
+    <div class="card-header">
+      <div>
+        <h2>Create Material Return</h2>
+        <p class="subtitle">
+          Submit unused, excess or defective materials.
+        </p>
+      </div>
+    </div>
 
     <form id="returnForm" class="form-grid">
 
@@ -275,15 +564,15 @@ th {
         </select>
       </div>
 
-      <div class="full stats">
+      <div class="full qty-grid">
 
-        <div class="stat">
-          Issued Quantity
+        <div class="qty-box">
+          <span>Issued Quantity</span>
           <strong id="issuedQty">0</strong>
         </div>
 
-        <div class="stat">
-          Available to Return
+        <div class="qty-box">
+          <span>Available to Return</span>
           <strong id="remainingQty">0</strong>
         </div>
 
@@ -300,38 +589,44 @@ th {
       </div>
 
       <div>
-        <label for="reason">Return Reason</label>
-        <select id="reason" required>
+        <label for="returnReason">Return Reason</label>
+        <select id="returnReason" required>
           <option value="">Select Reason</option>
-          <option>Excess Material</option>
-          <option>Defective</option>
-          <option>Damaged</option>
-          <option>Wrong Material</option>
-          <option>Other</option>
+          <option value="Excess Material">
+            Excess Material
+          </option>
+          <option value="Defective">Defective</option>
+          <option value="Damaged">Damaged</option>
+          <option value="Wrong Material">
+            Wrong Material
+          </option>
+          <option value="Other">Other</option>
         </select>
       </div>
 
       <div>
-        <label for="condition">Material Condition</label>
-        <select id="condition">
-          <option>Good</option>
-          <option>Defective</option>
-          <option>Damaged</option>
-          <option>Unknown</option>
+        <label for="materialCondition">Material Condition</label>
+        <select id="materialCondition">
+          <option value="Good">Good</option>
+          <option value="Defective">Defective</option>
+          <option value="Damaged">Damaged</option>
+          <option value="Unknown">Unknown</option>
         </select>
       </div>
 
       <div class="full">
-        <label for="remarks">Remarks</label>
+        <label for="returnRemarks">Remarks</label>
         <textarea
-          id="remarks"
+          id="returnRemarks"
           rows="3"
-          placeholder="Enter return remarks...">
-        </textarea>
+          placeholder="Enter return remarks..."></textarea>
       </div>
 
       <div class="full">
-        <button id="submitBtn" type="submit" disabled>
+        <button type="submit"
+                id="submitReturn"
+                class="btn btn-primary"
+                disabled>
           Submit Material Return
         </button>
       </div>
@@ -340,13 +635,54 @@ th {
 
   </section>
 
+  <!-- LOGISTIC VERIFICATION -->
+
+  <section class="card"
+           id="logisticSection"
+           hidden>
+
+    <div class="card-header">
+      <div>
+        <h2>Logistic Return Verification</h2>
+        <p class="subtitle">
+          Review and verify material returns from Production.
+        </p>
+      </div>
+
+      <button id="refreshVerification"
+              class="btn btn-secondary"
+              type="button">
+        Refresh
+      </button>
+    </div>
+
+    <div id="verificationList">
+      <p class="empty">Loading pending returns...</p>
+    </div>
+
+  </section>
+
   <!-- RETURN HISTORY -->
 
   <section class="card">
 
-    <h2>Material Return History</h2>
+    <div class="card-header">
+      <div>
+        <h2>Material Return History</h2>
+        <p class="subtitle">
+          Track submitted material returns and their status.
+        </p>
+      </div>
+
+      <button id="refreshHistory"
+              class="btn btn-secondary"
+              type="button">
+        Refresh
+      </button>
+    </div>
 
     <div class="table-wrap">
+
       <table>
         <thead>
           <tr>
@@ -361,7 +697,9 @@ th {
             <td colspan="3">Loading...</td>
           </tr>
         </tbody>
+
       </table>
+
     </div>
 
   </section>
@@ -374,20 +712,29 @@ th {
 document.addEventListener("DOMContentLoaded", async () => {
   "use strict";
 
+  // =====================================
+  // 1. SUPABASE CONFIGURATION
+  // =====================================
+
   const SUPABASE_URL =
     "https://swyzpswrncaghdfnphhc.supabase.co";
 
   const SUPABASE_KEY =
-    "sb_publishable_Rek9NATddqXIwNN0UQ6cUw_Iuh5aRoE";
+    "PASTE_YOUR_PUBLISHABLE_KEY_HERE";
 
   const el = id => document.getElementById(id);
 
-  const message = el("message");
+  let db;
+  let role = null;
+  let materials = [];
+  let selectedMaterial = null;
 
-  function showMessage(text, error = false) {
-    message.hidden = false;
-    message.textContent = text;
-    message.className =
+  const messageBox = el("message");
+
+  function notify(text, error = false) {
+    messageBox.hidden = false;
+    messageBox.textContent = text;
+    messageBox.className =
       error ? "message error" : "message";
   }
 
@@ -398,151 +745,165 @@ document.addEventListener("DOMContentLoaded", async () => {
     select.appendChild(option);
   }
 
-  function showTableMessage(text) {
-    const tbody = el("returnRows");
-    tbody.replaceChildren();
-
-    const tr = document.createElement("tr");
-    const td = document.createElement("td");
-    td.colSpan = 3;
-    td.textContent = text;
-    tr.appendChild(td);
-    tbody.appendChild(tr);
+  function textNode(tag, value, className = "") {
+    const node = document.createElement(tag);
+    node.textContent = String(value ?? "-");
+    if (className) node.className = className;
+    return node;
   }
 
+  function detail(parent, label, value) {
+    const wrapper = document.createElement("div");
+    wrapper.appendChild(
+      textNode("span", label, "detail-label")
+    );
+    wrapper.appendChild(
+      textNode("span", value, "detail-value")
+    );
+    parent.appendChild(wrapper);
+  }
+
+  function formatDate(value) {
+    if (!value) return "-";
+    const date = new Date(value);
+    return Number.isNaN(date.getTime())
+      ? "-"
+      : date.toLocaleString();
+  }
+
+  function showTableMessage(text) {
+    const body = el("returnRows");
+    body.replaceChildren();
+
+    const row = document.createElement("tr");
+    const cell = document.createElement("td");
+    cell.colSpan = 3;
+    cell.textContent = text;
+    row.appendChild(cell);
+    body.appendChild(row);
+  }
+
+  // =====================================
+  // 2. AUTHENTICATION
+  // =====================================
+
   if (!window.supabase?.createClient) {
-    showMessage("Supabase library could not load.", true);
+    notify("Supabase library failed to load.", true);
     return;
   }
 
   if (SUPABASE_KEY.includes("PASTE_YOUR")) {
-    showMessage(
-      "Please configure your Supabase publishable key.",
-      true
-    );
+    notify("Please configure Supabase publishable key.", true);
     return;
   }
 
-  const db = window.supabase.createClient(
+  db = window.supabase.createClient(
     SUPABASE_URL,
     SUPABASE_KEY
   );
 
-  let role = null;
-  let returnableMaterials = [];
-  let selectedMaterial = null;
+  try {
+    const { data: auth, error: authError } =
+      await db.auth.getUser();
 
-  // 1. AUTHENTICATION
+    if (authError) throw authError;
 
-  const { data: auth, error: authError } =
-    await db.auth.getUser();
+    if (!auth?.user) {
+      location.replace("login.html");
+      return;
+    }
 
-  if (authError || !auth?.user) {
-    window.location.replace("login.html");
+    const { data: profile, error: profileError } =
+      await db.from("profiles")
+        .select("role")
+        .eq("id", auth.user.id)
+        .single();
+
+    if (profileError) throw profileError;
+
+    role = profile?.role;
+
+    if (!["Logistic", "Production"].includes(role)) {
+      throw new Error(
+        "Only Logistic and Production can access Material Return."
+      );
+    }
+
+    el("loginInfo").textContent =
+      `${auth.user.email} | Role: ${role}`;
+
+    el("roleTag").textContent = role;
+
+    document.querySelectorAll(".logistic-only")
+      .forEach(link => {
+        link.hidden = role !== "Logistic";
+      });
+
+    el("productionSection").hidden =
+      role !== "Production";
+
+    el("logisticSection").hidden =
+      role !== "Logistic";
+
+  } catch (error) {
+    notify(error.message, true);
+    el("loginInfo").textContent = "Access denied";
     return;
   }
 
-  const { data: profile, error: roleError } =
-    await db.from("profiles")
-      .select("role")
-      .eq("id", auth.user.id)
-      .single();
+  // =====================================
+  // 3. LOAD RETURNABLE MATERIALS
+  // =====================================
 
-  if (
-    roleError ||
-    !["Production", "Logistic"].includes(profile?.role)
-  ) {
-    el("roleInfo").textContent = "Access denied.";
-    showTableMessage("Access denied.");
-    return;
-  }
-
-  role = profile.role;
-
-  el("roleInfo").textContent =
-    `${auth.user.email} | Role: ${role}`;
-
-  document.querySelectorAll(".logistic-only")
-    .forEach(link => {
-      link.hidden = role !== "Logistic";
-    });
-
-  el("productionForm").hidden =
-    role !== "Production";
-
-  // 2. GET RETURNABLE MATERIALS
-
-  async function loadReturnableMaterials() {
+  async function loadMaterials() {
     const { data, error } = await db.rpc(
       "get_returnable_materials"
     );
 
     if (error) {
-      showMessage(
+      notify(
         "Cannot load materials: " + error.message,
         true
       );
       return;
     }
 
-    returnableMaterials = data || [];
+    materials = data || [];
 
     const requestSelect = el("requestSelect");
     requestSelect.replaceChildren();
 
-    addOption(
-      requestSelect,
-      "",
-      "Select Request"
-    );
+    addOption(requestSelect, "", "Select Request");
 
-    const uniqueRequests = new Map();
+    const requestMap = new Map();
 
-    returnableMaterials.forEach(item => {
-      uniqueRequests.set(
-        item.request_uuid,
-        {
-          request_id: item.request_id,
-          product_model: item.product_model
-        }
-      );
+    materials.forEach(item => {
+      requestMap.set(item.request_uuid, item);
     });
 
-    uniqueRequests.forEach((value, key) => {
+    requestMap.forEach(item => {
       addOption(
         requestSelect,
-        key,
-        `${value.request_id} — ${value.product_model}`
+        item.request_uuid,
+        `${item.request_id} — ${item.product_model}`
       );
     });
 
-    updateMaterials();
+    updateMaterialOptions();
   }
 
-  // 3. FILTER MATERIALS BY REQUEST
+  function updateMaterialOptions() {
+    const requestId = el("requestSelect").value;
+    const select = el("materialSelect");
 
-  function updateMaterials() {
-    const requestUuid =
-      el("requestSelect").value;
+    select.replaceChildren();
+    addOption(select, "", "Select Material");
 
-    const materialSelect =
-      el("materialSelect");
-
-    materialSelect.replaceChildren();
-
-    addOption(
-      materialSelect,
-      "",
-      "Select Material"
-    );
-
-    returnableMaterials
-      .filter(item =>
-        item.request_uuid === requestUuid
-      )
+    materials
+      .filter(item => item.request_uuid === requestId)
       .forEach(item => {
         addOption(
-          materialSelect,
+          select,
           item.material_id,
           `${item.material_code} — ${item.material_name}`
         );
@@ -551,20 +912,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     updateQuantity();
   }
 
-  // 4. SHOW ISSUED AND REMAINING QTY
-
   function updateQuantity() {
-    const requestUuid =
-      el("requestSelect").value;
+    const requestId = el("requestSelect").value;
+    const materialId = el("materialSelect").value;
 
-    const materialId =
-      el("materialSelect").value;
-
-    selectedMaterial =
-      returnableMaterials.find(item =>
-        item.request_uuid === requestUuid &&
-        item.material_id === materialId
-      ) || null;
+    selectedMaterial = materials.find(item =>
+      item.request_uuid === requestId &&
+      item.material_id === materialId
+    ) || null;
 
     el("issuedQty").textContent =
       selectedMaterial?.issued_qty ?? 0;
@@ -577,13 +932,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     el("returnQty").max =
       selectedMaterial?.remaining_qty ?? 0;
 
-    el("submitBtn").disabled =
-      !selectedMaterial;
+    el("submitReturn").disabled = !selectedMaterial;
   }
 
   el("requestSelect").addEventListener(
     "change",
-    updateMaterials
+    updateMaterialOptions
   );
 
   el("materialSelect").addEventListener(
@@ -591,7 +945,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     updateQuantity
   );
 
-  // 5. SUBMIT MATERIAL RETURN
+  // =====================================
+  // 4. PRODUCTION SUBMIT RETURN
+  // =====================================
 
   el("returnForm").addEventListener(
     "submit",
@@ -601,40 +957,34 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (role !== "Production") return;
       if (!selectedMaterial) return;
 
-      const qty = Number(
-        el("returnQty").value
-      );
-
-      const remaining = Number(
+      const qty = Number(el("returnQty").value);
+      const available = Number(
         selectedMaterial.remaining_qty
       );
 
-      const reason = el("reason").value;
+      const reason = el("returnReason").value;
+      const condition = el("materialCondition").value;
+      const remarks = el("returnRemarks").value.trim();
 
       if (
         !Number.isFinite(qty) ||
         qty <= 0 ||
-        qty > remaining
+        qty > available
       ) {
-        showMessage(
-          "Invalid return quantity.",
-          true
-        );
+        notify("Invalid return quantity.", true);
         return;
       }
 
       if (!reason) {
-        showMessage(
-          "Please select a return reason.",
-          true
-        );
+        notify("Please select return reason.", true);
         return;
       }
 
-      const button = el("submitBtn");
+      const button = el("submitReturn");
+      if (button.disabled) return;
 
       button.disabled = true;
-      showMessage("Submitting material return...");
+      notify("Submitting material return...");
 
       try {
         const { data, error } = await db.rpc(
@@ -648,29 +998,25 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             p_return_qty: qty,
             p_reason: reason,
-
-            p_condition:
-              el("condition").value,
-
-            p_remarks:
-              el("remarks").value.trim()
+            p_condition: condition,
+            p_remarks: remarks || null
           }
         );
 
         if (error) throw error;
 
-        showMessage(
-          `Material return submitted successfully. ID: ${data}`
+        notify(
+          `Material return submitted successfully. Reference: ${data}`
         );
 
         el("returnForm").reset();
 
-        await loadReturnableMaterials();
-        await loadReturnHistory();
+        await loadMaterials();
+        await loadHistory();
 
       } catch (error) {
-        showMessage(
-          "Unable to submit: " + error.message,
+        notify(
+          "Unable to submit return: " + error.message,
           true
         );
 
@@ -680,69 +1026,361 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   );
 
-  // 6. LOAD RETURN HISTORY
+  // =====================================
+  // 5. RETURN HISTORY
+  // =====================================
 
-  async function loadReturnHistory() {
+  async function loadHistory() {
     const { data, error } = await db
       .from("material_returns")
-      .select("return_no, submitted_at, status")
+      .select(
+        "id,return_no,request_uuid,submitted_by," +
+        "submitted_at,status,remarks"
+      )
       .order("submitted_at", {
         ascending: false
       });
 
     if (error) {
       showTableMessage(
-        "Cannot load returns: " + error.message
+        "Cannot load history: " + error.message
       );
       return;
     }
 
-    if (!data?.length) {
+    const records = data || [];
+    const tbody = el("returnRows");
+
+    tbody.replaceChildren();
+
+    if (!records.length) {
       showTableMessage("No material returns yet.");
+    }
+
+    for (const record of records) {
+      const tr = document.createElement("tr");
+
+      const cell1 = textNode(
+        "td",
+        record.return_no
+      );
+
+      const cell2 = textNode(
+        "td",
+        formatDate(record.submitted_at)
+      );
+
+      const cell3 = document.createElement("td");
+      const badge = textNode(
+        "span",
+        record.status,
+        "badge " + record.status.toLowerCase()
+      );
+
+      cell3.appendChild(badge);
+
+      tr.append(cell1, cell2, cell3);
+      tbody.appendChild(tr);
+    }
+
+    if (role === "Logistic") {
+      await loadVerification(records);
+    }
+  }
+
+  // =====================================
+  // 6. LOGISTIC VERIFICATION
+  // =====================================
+
+  async function loadVerification(records) {
+    const container = el("verificationList");
+    container.replaceChildren();
+
+    const pending = records.filter(
+      item => item.status === "Pending"
+    );
+
+    if (!pending.length) {
+      container.appendChild(
+        textNode("p", "No pending material returns.", "empty")
+      );
       return;
     }
 
-    const tbody = el("returnRows");
-    tbody.replaceChildren();
+    const returnIds = pending.map(item => item.id);
 
-    for (const record of data) {
-      const tr = document.createElement("tr");
+    const { data: items, error: itemsError } =
+      await db.from("material_return_items")
+        .select(
+          "return_uuid,material_id,return_qty," +
+          "reason,material_condition,notes"
+        )
+        .in("return_uuid", returnIds);
 
-      const values = [
-        record.return_no,
-        new Date(
-          record.submitted_at
-        ).toLocaleString(),
-        record.status
-      ];
+    if (itemsError) {
+      container.appendChild(
+        textNode(
+          "p",
+          "Cannot load return items: " + itemsError.message,
+          "empty"
+        )
+      );
+      return;
+    }
 
-      values.forEach(value => {
-        const td = document.createElement("td");
-        td.textContent = value ?? "";
+    const itemList = items || [];
 
-        if (value === "Pending") {
-          td.className = "status";
-        }
+    const materialIds = [
+      ...new Set(itemList.map(i => i.material_id))
+    ];
 
-        tr.appendChild(td);
-      });
+    let materialMap = new Map();
 
-      tbody.appendChild(tr);
+    if (materialIds.length) {
+      const { data: materialData, error: materialError } =
+        await db.from("materials")
+          .select(
+            "material_id,material_code,material_name"
+          )
+          .in("material_id", materialIds);
+
+      if (materialError) {
+        container.appendChild(
+          textNode(
+            "p",
+            "Cannot load material names: " +
+              materialError.message,
+            "empty"
+          )
+        );
+        return;
+      }
+
+      materialMap = new Map(
+        (materialData || []).map(m => [
+          m.material_id,
+          m
+        ])
+      );
+    }
+
+    for (const record of pending) {
+      const card = document.createElement("div");
+      card.className = "return-card";
+
+      const top = document.createElement("div");
+      top.className = "return-top";
+
+      top.appendChild(
+        textNode("h3", record.return_no)
+      );
+
+      top.appendChild(
+        textNode("span", "Pending", "badge pending")
+      );
+
+      card.appendChild(top);
+
+      const info = document.createElement("div");
+      info.className = "details";
+
+      detail(
+        info,
+        "Submitted At",
+        formatDate(record.submitted_at)
+      );
+
+      detail(
+        info,
+        "Submitted By (User ID)",
+        record.submitted_by
+      );
+
+      detail(
+        info,
+        "Return Remarks",
+        record.remarks || "-"
+      );
+
+      card.appendChild(info);
+
+      const matchingItems = itemList.filter(
+        item => item.return_uuid === record.id
+      );
+
+      for (const item of matchingItems) {
+        const material = materialMap.get(item.material_id);
+
+        const itemBox = document.createElement("div");
+        itemBox.className = "item-box";
+
+        itemBox.appendChild(
+          textNode(
+            "h4",
+            material
+              ? `${material.material_code} — ${material.material_name}`
+              : item.material_id
+          )
+        );
+
+        const itemInfo = document.createElement("div");
+        itemInfo.className = "details";
+
+        detail(itemInfo, "Return Quantity", item.return_qty);
+        detail(itemInfo, "Reason", item.reason);
+        detail(
+          itemInfo,
+          "Condition",
+          item.material_condition
+        );
+        detail(
+          itemInfo,
+          "Item Notes",
+          item.notes || "-"
+        );
+
+        itemBox.appendChild(itemInfo);
+        card.appendChild(itemBox);
+      }
+
+      const label = textNode(
+        "label",
+        "Verification Notes"
+      );
+
+      const notes = document.createElement("textarea");
+      notes.rows = 3;
+      notes.placeholder =
+        "Enter verification notes or rejection reason...";
+
+      const actions = document.createElement("div");
+      actions.className = "actions";
+
+      const accept = document.createElement("button");
+      accept.type = "button";
+      accept.className = "btn btn-accept";
+      accept.textContent = "Accept Return";
+
+      const reject = document.createElement("button");
+      reject.type = "button";
+      reject.className = "btn btn-reject";
+      reject.textContent = "Reject Return";
+
+      accept.addEventListener("click", () =>
+        verifyReturn(
+          record.id,
+          "Accepted",
+          notes.value,
+          accept,
+          reject
+        )
+      );
+
+      reject.addEventListener("click", () =>
+        verifyReturn(
+          record.id,
+          "Rejected",
+          notes.value,
+          accept,
+          reject
+        )
+      );
+
+      actions.append(accept, reject);
+      card.append(label, notes, actions);
+
+      container.appendChild(card);
     }
   }
 
-  // 7. INITIAL LOAD
+  // =====================================
+  // 7. ACCEPT / REJECT RETURN
+  // =====================================
 
-  await loadReturnHistory();
+  async function verifyReturn(
+    returnId,
+    decision,
+    notes,
+    acceptButton,
+    rejectButton
+  ) {
+    if (role !== "Logistic") return;
+
+    if (decision === "Rejected" && !notes.trim()) {
+      notify(
+        "Please enter a rejection reason.",
+        true
+      );
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Are you sure you want to ${decision.toLowerCase()} this return?`
+    );
+
+    if (!confirmed) return;
+
+    acceptButton.disabled = true;
+    rejectButton.disabled = true;
+
+    try {
+      const { error } = await db.rpc(
+        "verify_material_return",
+        {
+          p_return_uuid: returnId,
+          p_decision: decision,
+          p_notes: notes.trim() || null
+        }
+      );
+
+      if (error) throw error;
+
+      notify(
+        `Material return ${decision.toLowerCase()} successfully.`
+      );
+
+      await loadHistory();
+
+    } catch (error) {
+      notify(
+        "Verification failed: " + error.message,
+        true
+      );
+
+      acceptButton.disabled = false;
+      rejectButton.disabled = false;
+    }
+  }
+
+  // =====================================
+  // 8. REFRESH BUTTONS
+  // =====================================
+
+  el("refreshVerification").addEventListener(
+    "click",
+    loadHistory
+  );
+
+  el("refreshHistory").addEventListener(
+    "click",
+    loadHistory
+  );
+
+  // =====================================
+  // 9. INITIAL LOAD
+  // =====================================
+
+  await loadHistory();
 
   if (role === "Production") {
-    await loadReturnableMaterials();
+    await loadMaterials();
   }
 
   console.log(
-    "DPR Material Return loaded. Role:",
+    "DPR MATERIAL RETURN SYSTEM READY - ROLE:",
     role
   );
+
 });
 </script>
 
