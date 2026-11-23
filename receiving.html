@@ -1,0 +1,1360 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+  <title>Production Receiving | Digital Production Request</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --bg: #0b1220;
+      --sidebar: #0f172a;
+      --card: #151f32;
+      --input: #101b2d;
+      --border: #293548;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --turquoise: #2dd4bf;
+      --green: #059669;
+      --red: #be3348;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 14px;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    .layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* SIDEBAR */
+
+    .sidebar {
+      width: 245px;
+      flex-shrink: 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      background: var(--sidebar);
+      border-right: 1px solid var(--border);
+      padding: 26px 15px;
+    }
+
+    .brand {
+      padding: 5px 10px 24px;
+    }
+
+    .brand h2 {
+      font-size: 18px;
+      line-height: 1.5;
+      margin: 0 0 10px;
+    }
+
+    .brand p {
+      color: var(--muted);
+      font-size: 12px;
+      margin: 0;
+    }
+
+    .side-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .side-menu a,
+    .logout-button {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      padding: 14px 13px;
+      min-height: 47px;
+      border: none;
+      border-radius: 9px;
+      background: transparent;
+      text-decoration: none;
+      color: #cbd5e1;
+      text-align: left;
+      cursor: pointer;
+      width: 100%;
+      transition: background .2s;
+    }
+
+    .side-menu a:hover,
+    .logout-button:hover {
+      background: #1b2b40;
+    }
+
+    .side-menu a.active {
+      background: #164e4a;
+      color: #5eead4;
+      border-left: 3px solid var(--turquoise);
+    }
+
+    .side-menu svg,
+    .logout-button svg {
+      display: block;
+      width: 19px !important;
+      height: 19px !important;
+      min-width: 19px;
+      flex-shrink: 0;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .logout-button {
+      margin-top: 22px;
+      color: #fda4af;
+    }
+
+    /* MAIN CONTENT */
+
+    .main {
+      flex: 1;
+      min-width: 0;
+      padding: 35px;
+    }
+
+    .page-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+
+    .page-heading h1 {
+      font-size: 27px;
+      margin: 0 0 10px;
+    }
+
+    .subtitle,
+    .account-info {
+      color: var(--muted);
+    }
+
+    .account-info {
+      margin-top: 18px;
+      font-size: 13px;
+      overflow-wrap: anywhere;
+    }
+
+    .role-badge {
+      display: inline-flex;
+      align-items: center;
+      background: #164e4a;
+      color: #5eead4;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 25px;
+      margin-bottom: 25px;
+    }
+
+    .card h2 {
+      font-size: 20px;
+      margin: 0 0 11px;
+    }
+
+    .card-description {
+      color: var(--muted);
+      margin-bottom: 28px;
+      line-height: 1.6;
+    }
+
+    /* FORM */
+
+    .field {
+      margin-bottom: 19px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 9px;
+      color: #e2e8f0;
+    }
+
+    select,
+    input,
+    textarea {
+      background: var(--input);
+      color: var(--text);
+      border: 1px solid #334155;
+      border-radius: 9px;
+      width: 100%;
+      padding: 14px 16px;
+      outline: none;
+    }
+
+    select:focus,
+    input:focus,
+    textarea:focus {
+      border-color: var(--turquoise);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 90px;
+    }
+
+    select option {
+      background: var(--input);
+      color: white;
+    }
+
+    .two-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      background: var(--input);
+      padding: 20px;
+      border-radius: 12px;
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 9px;
+    }
+
+    .stat-value {
+      color: var(--turquoise);
+      font-size: 27px;
+      font-weight: bold;
+      overflow-wrap: anywhere;
+    }
+
+    .btn {
+      cursor: pointer;
+      border: 0;
+      border-radius: 9px;
+      padding: 13px 18px;
+      color: white;
+      font-weight: bold;
+    }
+
+    .btn-primary {
+      background: var(--green);
+    }
+
+    .btn-primary:hover {
+      background: #047857;
+    }
+
+    .btn-secondary {
+      background: #334155;
+    }
+
+    .btn-secondary:hover {
+      background: #475569;
+    }
+
+    .btn:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+
+    .action-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .message {
+      padding: 15px;
+      border-radius: 9px;
+      margin-bottom: 20px;
+      line-height: 1.6;
+      overflow-wrap: anywhere;
+    }
+
+    .message.success {
+      background: #123b36;
+      color: #5eead4;
+      border: 1px solid #1c6b60;
+    }
+
+    .message.error {
+      background: #451d2b;
+      color: #fda4af;
+      border: 1px solid #7f1d1d;
+    }
+
+    .message.info {
+      background: #142b3a;
+      color: #93c5fd;
+      border: 1px solid #1e4560;
+    }
+
+    /* HISTORY */
+
+    .table-wrapper {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 780px;
+    }
+
+    th {
+      background: #233249;
+      text-align: left;
+      color: #e2e8f0;
+      padding: 16px;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 16px;
+      border-top: 1px solid var(--border);
+      color: #cbd5e1;
+      vertical-align: top;
+      overflow-wrap: anywhere;
+    }
+
+    .status-badge {
+      display: inline-block;
+      border-radius: 20px;
+      padding: 7px 12px;
+      background: #164e4a;
+      color: #5eead4;
+      font-size: 12px;
+    }
+
+    .empty {
+      padding: 30px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .small-note {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.7;
+      margin-top: 14px;
+    }
+
+    @media (max-width: 800px) {
+      .layout {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        position: relative;
+        width: 100%;
+        height: auto;
+      }
+
+      .main {
+        padding: 20px 15px;
+      }
+
+      .page-heading {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .two-columns,
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      .card {
+        padding: 18px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+
+  <aside class="sidebar">
+    <div class="brand">
+      <h2>Digital Production<br>Request</h2>
+      <p>Raw Material Request System</p>
+    </div>
+
+    <nav class="side-menu" id="sideMenu">
+
+      <a href="index.html"
+         data-roles="Production,Logistic,Staff"
+         data-icon="dashboard">
+        Dashboard
+      </a>
+
+      <a href="index.html#request"
+         data-roles="Production"
+         data-icon="request">
+        Create Request
+      </a>
+
+      <a href="index.html#history"
+         data-roles="Production,Logistic"
+         data-icon="history">
+        Request History
+      </a>
+
+      <a href="receiving.html"
+         data-roles="Production,Logistic"
+         data-icon="receiving"
+         class="active">
+        Production Receiving
+      </a>
+
+      <a href="logistic.html"
+         data-roles="Logistic"
+         data-icon="approval">
+        Logistic Approval
+      </a>
+
+      <a href="issuing.html"
+         data-roles="Logistic"
+         data-icon="issuing">
+        Material Issuing
+      </a>
+
+      <a href="receipt.html"
+         data-roles="Logistic"
+         data-icon="email">
+        Email Receipt
+      </a>
+
+      <a href="employees.html"
+         data-roles="Production,Logistic"
+         data-icon="employees">
+        Employee Management
+      </a>
+
+      <a href="material-return.html"
+         data-roles="Production,Logistic"
+         data-icon="return">
+        Material Return
+      </a>
+
+      <button class="logout-button"
+              type="button"
+              id="logoutButton"
+              data-icon="logout">
+        Logout
+      </button>
+
+    </nav>
+  </aside>
+
+  <!-- MAIN -->
+
+  <main class="main" id="mainContent" hidden>
+
+    <div class="page-heading">
+      <div>
+        <h1>Production Receiving</h1>
+        <p class="subtitle">
+          Material Receipt Confirmation & Tracking
+        </p>
+
+        <p class="account-info" id="accountInfo">
+          Checking account...
+        </p>
+      </div>
+
+      <span class="role-badge" id="roleBadge">
+        Production
+      </span>
+    </div>
+
+    <div id="messageArea"></div>
+
+    <!-- RECEIVING FORM -->
+
+    <section class="card" id="receivingSection">
+
+      <h2>Confirm Material Receiving</h2>
+
+      <p class="card-description">
+        Confirm the quantity of materials received
+        from the Logistic Department.
+      </p>
+
+      <form id="receivingForm">
+
+        <div class="field">
+          <label for="requestSelect">Request ID</label>
+
+          <select id="requestSelect" required>
+            <option value="">Select Request</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="materialSelect">Material</label>
+
+          <select id="materialSelect" required disabled>
+            <option value="">Select Material</option>
+          </select>
+        </div>
+
+        <div class="stats">
+
+          <div class="stat">
+            <div class="stat-label">
+              Issued Quantity
+            </div>
+            <div class="stat-value" id="issuedQty">
+              0
+            </div>
+          </div>
+
+          <div class="stat">
+            <div class="stat-label">
+              Already Received
+            </div>
+            <div class="stat-value" id="receivedQty">
+              0
+            </div>
+          </div>
+
+          <div class="stat">
+            <div class="stat-label">
+              Available to Receive
+            </div>
+            <div class="stat-value" id="remainingQty">
+              0
+            </div>
+          </div>
+
+        </div>
+
+        <div class="two-columns">
+
+          <div class="field">
+            <label for="confirmQty">
+              Received Quantity
+            </label>
+
+            <input
+              type="number"
+              id="confirmQty"
+              min="0.001"
+              step="any"
+              placeholder="Enter received quantity"
+              required
+            >
+          </div>
+
+          <div class="field">
+            <label for="receivingDate">
+              Receiving Date
+            </label>
+
+            <input
+              type="date"
+              id="receivingDate"
+              readonly
+            >
+          </div>
+
+        </div>
+
+        <div class="field">
+          <label for="remarks">Receiving Remarks</label>
+
+          <textarea
+            id="remarks"
+            placeholder="Enter remarks (optional)"
+          ></textarea>
+        </div>
+
+        <div class="action-row">
+          <button
+            class="btn btn-primary"
+            id="confirmButton"
+            type="submit">
+            Confirm Received
+          </button>
+
+          <button
+            class="btn btn-secondary"
+            id="refreshButton"
+            type="button">
+            Refresh Materials
+          </button>
+        </div>
+
+        <p class="small-note">
+          The confirmed quantity cannot exceed the
+          remaining issued quantity. Multiple partial
+          receiving confirmations are supported.
+        </p>
+
+      </form>
+    </section>
+
+    <!-- HISTORY -->
+
+    <section class="card">
+
+      <h2>Receiving History</h2>
+
+      <p class="card-description" id="historyDescription">
+        Records of confirmed material receipts.
+      </p>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Request ID</th>
+              <th>Material</th>
+              <th>Received Qty</th>
+              <th>Received By</th>
+              <th>Date / Time</th>
+              <th>Remarks</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+
+          <tbody id="historyBody">
+            <tr>
+              <td colspan="7">
+                Loading receiving history...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  const SUPABASE_URL =
+    "https://swyzpswrncaghdfnphhc.supabase.co";
+
+  const SUPABASE_KEY =
+    "sb_publishable_Rek9NATddqXIwNN0UQ6cUw_Iuh5aRoE";
+
+  const db = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+  const $ = id => document.getElementById(id);
+
+  let currentUser = null;
+  let currentRole = null;
+  let receivableRows = [];
+  let submitting = false;
+
+  // =====================================
+  // SVG ICONS
+  // =====================================
+
+  const icons = {
+    dashboard: `
+      <rect x="3" y="3" width="7" height="7" rx="1"/>
+      <rect x="14" y="3" width="7" height="7" rx="1"/>
+      <rect x="3" y="14" width="7" height="7" rx="1"/>
+      <rect x="14" y="14" width="7" height="7" rx="1"/>
+    `,
+
+    request: `
+      <path d="M8 3h8l5 5v13H3V3z"/>
+      <path d="M16 3v5h5"/>
+      <path d="M12 12v6M9 15h6"/>
+    `,
+
+    history: `
+      <path d="M3 12a9 9 0 1 0 3-6.7"/>
+      <path d="M3 3v5h5"/>
+      <path d="M12 7v5l4 2"/>
+    `,
+
+    receiving: `
+      <path d="m3 7 9-4 9 4-9 4-9-4z"/>
+      <path d="M3 7v10l9 4 9-4V7"/>
+      <path d="M12 11v10"/>
+      <path d="m8 16 3 3 5-6"/>
+    `,
+
+    approval: `
+      <rect x="5" y="4" width="14" height="17" rx="2"/>
+      <path d="M9 4h6"/>
+      <path d="m9 13 2 2 4-4"/>
+    `,
+
+    issuing: `
+      <path d="m3 7 9-4 9 4-9 4-9-4z"/>
+      <path d="M3 7v10l9 4 9-4V7"/>
+      <path d="M12 11v10"/>
+    `,
+
+    email: `
+      <rect x="3" y="5" width="18" height="14" rx="2"/>
+      <path d="m3 7 9 6 9-6"/>
+    `,
+
+    employees: `
+      <circle cx="9" cy="8" r="3"/>
+      <path d="M3 20v-2a6 6 0 0 1 12 0v2"/>
+      <path d="M17 5a3 3 0 0 1 0 6"/>
+      <path d="M18 14a5 5 0 0 1 3 5"/>
+    `,
+
+    return: `
+      <path d="M3 7v6h6"/>
+      <path d="M3 13a9 9 0 1 0 3-7"/>
+      <path d="m3 7 3-3"/>
+    `,
+
+    logout: `
+      <path d="m10 17 5-5-5-5"/>
+      <path d="M15 12H3"/>
+      <path d="M12 3h6a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3h-6"/>
+    `
+  };
+
+  function applyIcons() {
+    document.querySelectorAll("[data-icon]")
+      .forEach(element => {
+
+        const type = element.dataset.icon;
+
+        if (!icons[type]) return;
+
+        element.querySelectorAll("svg")
+          .forEach(svg => svg.remove());
+
+        const svg = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "svg"
+        );
+
+        svg.setAttribute("viewBox", "0 0 24 24");
+        svg.setAttribute("aria-hidden", "true");
+        svg.innerHTML = icons[type];
+
+        element.prepend(svg);
+      });
+  }
+
+  // =====================================
+  // NOTIFICATIONS
+  // =====================================
+
+  function showMessage(message, type = "info") {
+    const area = $("messageArea");
+
+    area.replaceChildren();
+
+    const box = document.createElement("div");
+    box.className = "message " + type;
+    box.textContent = message;
+
+    area.appendChild(box);
+  }
+
+  function clearMessage() {
+    $("messageArea").replaceChildren();
+  }
+
+  function formatQty(value) {
+    const n = Number(value || 0);
+
+    return Number.isFinite(n)
+      ? n.toLocaleString("en-MY", {
+          maximumFractionDigits: 6
+        })
+      : "0";
+  }
+
+  function formatDate(value) {
+    if (!value) return "-";
+
+    const date = new Date(value);
+
+    return Number.isNaN(date.getTime())
+      ? "-"
+      : date.toLocaleString("en-MY");
+  }
+
+  function setToday() {
+    const date = new Date();
+
+    const year = date.getFullYear();
+    const month = String(
+      date.getMonth() + 1
+    ).padStart(2, "0");
+
+    const day = String(
+      date.getDate()
+    ).padStart(2, "0");
+
+    $("receivingDate").value =
+      `${year}-${month}-${day}`;
+  }
+
+  // =====================================
+  // ROLE-BASED SIDEBAR
+  // =====================================
+
+  function configureSidebar() {
+    document.querySelectorAll("[data-roles]")
+      .forEach(link => {
+
+        const allowed = link.dataset.roles
+          .split(",")
+          .map(role => role.trim());
+
+        link.hidden = !allowed.includes(currentRole);
+      });
+
+    $("roleBadge").textContent = currentRole;
+
+    $("accountInfo").textContent =
+      currentUser.email +
+      " | Role: " +
+      currentRole;
+
+    if (currentRole === "Logistic") {
+      $("receivingSection").hidden = true;
+
+      $("historyDescription").textContent =
+        "Receiving confirmations recorded by Production.";
+    }
+  }
+
+  // =====================================
+  // REQUEST & MATERIAL OPTIONS
+  // =====================================
+
+  function addOption(select, value, label) {
+    const option = document.createElement("option");
+
+    option.value = value;
+    option.textContent = label;
+
+    select.appendChild(option);
+  }
+
+  function resetMaterialSelection() {
+    const select = $("materialSelect");
+
+    select.replaceChildren();
+
+    addOption(select, "", "Select Material");
+
+    select.disabled = true;
+
+    $("issuedQty").textContent = "0";
+    $("receivedQty").textContent = "0";
+    $("remainingQty").textContent = "0";
+    $("confirmQty").value = "";
+    $("confirmQty").removeAttribute("max");
+  }
+
+  function selectedMaterial() {
+    return receivableRows.find(row =>
+      row.request_uuid === $("requestSelect").value &&
+      row.material_id === $("materialSelect").value
+    );
+  }
+
+  function populateRequests() {
+    const select = $("requestSelect");
+    const previous = select.value;
+
+    select.replaceChildren();
+
+    addOption(select, "", "Select Request");
+
+    const seen = new Set();
+
+    for (const row of receivableRows) {
+      if (seen.has(row.request_uuid)) continue;
+
+      seen.add(row.request_uuid);
+
+      addOption(
+        select,
+        row.request_uuid,
+        `${row.request_id} — ${row.product_model}`
+      );
+    }
+
+    if (seen.has(previous)) {
+      select.value = previous;
+    }
+
+    populateMaterials();
+  }
+
+  function populateMaterials() {
+    const requestUuid = $("requestSelect").value;
+
+    resetMaterialSelection();
+
+    if (!requestUuid) return;
+
+    const rows = receivableRows.filter(
+      row => row.request_uuid === requestUuid
+    );
+
+    if (!rows.length) return;
+
+    const select = $("materialSelect");
+
+    for (const row of rows) {
+      addOption(
+        select,
+        row.material_id,
+        `${row.material_code} — ${row.material_name}`
+      );
+    }
+
+    select.disabled = false;
+  }
+
+  function updateQuantities() {
+    const row = selectedMaterial();
+
+    if (!row) {
+      $("issuedQty").textContent = "0";
+      $("receivedQty").textContent = "0";
+      $("remainingQty").textContent = "0";
+      $("confirmQty").value = "";
+      $("confirmQty").removeAttribute("max");
+      return;
+    }
+
+    $("issuedQty").textContent =
+      formatQty(row.issued_qty);
+
+    $("receivedQty").textContent =
+      formatQty(row.received_qty);
+
+    $("remainingQty").textContent =
+      formatQty(row.remaining_qty);
+
+    $("confirmQty").max = String(row.remaining_qty);
+    $("confirmQty").value = "";
+  }
+
+  // =====================================
+  // LOAD AVAILABLE MATERIALS
+  // =====================================
+
+  async function loadReceivableMaterials() {
+    if (currentRole !== "Production") return;
+
+    const { data, error } = await db.rpc(
+      "get_receivable_materials"
+    );
+
+    if (error) throw error;
+
+    receivableRows = data || [];
+
+    populateRequests();
+
+    if (receivableRows.length === 0) {
+      showMessage(
+        "No materials are currently available for receiving. " +
+        "Check whether Logistic has issued material " +
+        "for an Approved request.",
+        "info"
+      );
+    }
+  }
+
+  // =====================================
+  // CONFIRM RECEIVING
+  // =====================================
+
+  async function submitReceiving(event) {
+    event.preventDefault();
+
+    if (currentRole !== "Production") return;
+    if (submitting) return;
+
+    const row = selectedMaterial();
+
+    if (!row) {
+      showMessage(
+        "Please select a Request ID and Material.",
+        "error"
+      );
+      return;
+    }
+
+    const qty = Number($("confirmQty").value);
+    const remaining = Number(row.remaining_qty);
+
+    if (!Number.isFinite(qty) || qty <= 0) {
+      showMessage(
+        "Received Quantity must be greater than zero.",
+        "error"
+      );
+      return;
+    }
+
+    if (qty > remaining) {
+      showMessage(
+        "Received Quantity cannot exceed Available to Receive.",
+        "error"
+      );
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Confirm receiving ${formatQty(qty)} ` +
+      `units of ${row.material_code}?`
+    );
+
+    if (!confirmed) return;
+
+    submitting = true;
+    $("confirmButton").disabled = true;
+
+    try {
+      const { data, error } = await db.rpc(
+        "confirm_material_receipt",
+        {
+          p_request_uuid: row.request_uuid,
+          p_material_id: row.material_id,
+          p_received_qty: qty,
+          p_remarks: $("remarks").value.trim() || null
+        }
+      );
+
+      if (error) throw error;
+
+      $("remarks").value = "";
+
+      await loadReceivableMaterials();
+      await loadHistory();
+
+      showMessage(
+        "Material receiving confirmed successfully! " +
+        "Receipt Reference: " + data,
+        "success"
+      );
+
+    } catch (error) {
+      showMessage(
+        "Unable to confirm receiving: " + error.message,
+        "error"
+      );
+
+    } finally {
+      submitting = false;
+      $("confirmButton").disabled = false;
+    }
+  }
+
+  // =====================================
+  // RECEIVING HISTORY
+  // =====================================
+
+  function addCell(row, value) {
+    const cell = document.createElement("td");
+    cell.textContent = String(value ?? "-");
+    row.appendChild(cell);
+
+    return cell;
+  }
+
+  async function loadHistory() {
+    const body = $("historyBody");
+
+    body.replaceChildren();
+
+    const loading = document.createElement("tr");
+    addCell(loading, "Loading...");
+    loading.lastChild.colSpan = 7;
+    body.appendChild(loading);
+
+    let query = db
+      .from("production_receipts")
+      .select(`
+        id,
+        request_uuid,
+        material_id,
+        received_qty,
+        received_by,
+        remarks,
+        received_at,
+        requests (
+          request_id,
+          product_model
+        ),
+        materials (
+          material_code,
+          material_name
+        )
+      `)
+      .order("received_at", {
+        ascending: false
+      })
+      .limit(100);
+
+    if (currentRole === "Production") {
+      query = query.eq(
+        "received_by",
+        currentUser.id
+      );
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      body.replaceChildren();
+
+      const tr = document.createElement("tr");
+      addCell(
+        tr,
+        "Unable to load history: " + error.message
+      ).colSpan = 7;
+
+      body.appendChild(tr);
+      return;
+    }
+
+    body.replaceChildren();
+
+    if (!data || data.length === 0) {
+      const tr = document.createElement("tr");
+      addCell(
+        tr,
+        "No receiving history yet."
+      ).colSpan = 7;
+
+      body.appendChild(tr);
+      return;
+    }
+
+    for (const record of data) {
+      const tr = document.createElement("tr");
+
+      const requestLabel =
+        record.requests?.request_id ||
+        record.request_uuid.slice(0, 8);
+
+      const materialLabel =
+        record.materials?.material_code
+          ? `${record.materials.material_code} — ` +
+            `${record.materials.material_name}`
+          : record.material_id.slice(0, 8);
+
+      addCell(tr, requestLabel);
+      addCell(tr, materialLabel);
+      addCell(tr, formatQty(record.received_qty));
+
+      addCell(
+        tr,
+        record.received_by === currentUser.id
+          ? "You"
+          : record.received_by.slice(0, 8)
+      );
+
+      addCell(
+        tr,
+        formatDate(record.received_at)
+      );
+
+      addCell(tr, record.remarks || "-");
+
+      const statusCell = document.createElement("td");
+
+      const badge = document.createElement("span");
+      badge.className = "status-badge";
+      badge.textContent = "Received";
+
+      statusCell.appendChild(badge);
+      tr.appendChild(statusCell);
+
+      body.appendChild(tr);
+    }
+  }
+
+  // =====================================
+  // AUTHENTICATION
+  // =====================================
+
+  async function initialize() {
+    applyIcons();
+    setToday();
+
+    try {
+      const { data: auth, error: authError } =
+        await db.auth.getUser();
+
+      if (authError) throw authError;
+
+      if (!auth.user) {
+        window.location.replace("login.html");
+        return;
+      }
+
+      currentUser = auth.user;
+
+      const { data: profile, error: profileError } =
+        await db
+          .from("profiles")
+          .select("role")
+          .eq("id", currentUser.id)
+          .single();
+
+      if (profileError) throw profileError;
+
+      currentRole = profile.role;
+
+      if (
+        currentRole !== "Production" &&
+        currentRole !== "Logistic"
+      ) {
+        throw new Error(
+          "Only Production and Logistic can access Receiving."
+        );
+      }
+
+      configureSidebar();
+
+      $("mainContent").hidden = false;
+
+      if (currentRole === "Production") {
+        await loadReceivableMaterials();
+      }
+
+      await loadHistory();
+
+    } catch (error) {
+      $("mainContent").hidden = false;
+      $("receivingSection").hidden = true;
+
+      showMessage(
+        "Unable to load Production Receiving: " +
+        error.message,
+        "error"
+      );
+    }
+  }
+
+  // =====================================
+  // EVENTS
+  // =====================================
+
+  $("requestSelect").addEventListener(
+    "change",
+    populateMaterials
+  );
+
+  $("materialSelect").addEventListener(
+    "change",
+    updateQuantities
+  );
+
+  $("receivingForm").addEventListener(
+    "submit",
+    submitReceiving
+  );
+
+  $("refreshButton").addEventListener(
+    "click",
+    async () => {
+      try {
+        clearMessage();
+        await loadReceivableMaterials();
+        await loadHistory();
+      } catch (error) {
+        showMessage(error.message, "error");
+      }
+    }
+  );
+
+  $("logoutButton").addEventListener(
+    "click",
+    async () => {
+      const { error } = await db.auth.signOut();
+
+      if (error) {
+        showMessage(
+          "Logout failed: " + error.message,
+          "error"
+        );
+        return;
+      }
+
+      window.location.replace("login.html");
+    }
+  );
+
+  initialize();
+
+})();
+</script>
+
+</body>
+</html>
