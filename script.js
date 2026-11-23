@@ -1,192 +1,174 @@
 
 /*
   DIGITAL PRODUCTION REQUEST SYSTEM
-  Dashboard JavaScript - Supabase Version V3
-  Login, Roles, Requests, Search, Employee Menu, Icons
+  DASHBOARD V4
+  Staff | Logistic | Production
 */
 
 document.addEventListener("DOMContentLoaded", async () => {
   "use strict";
 
+  // ==============================
   // 1. SUPABASE CONFIGURATION
+  // ==============================
 
   const SUPABASE_URL =
     "https://swyzpswrncaghdfnphhc.supabase.co";
 
-  const SUPABASE_PUBLISHABLE_KEY =
+  const SUPABASE_KEY =
     "sb_publishable_Rek9NATddqXIwNN0UQ6cUw_Iuh5aRoE";
 
-  // 2. HTML ELEMENTS
+  const $ = id => document.getElementById(id);
 
-  const byId = (id) => document.getElementById(id);
+  const notice = $("authNotice");
+  const navigation = $("mainNav");
+  const main = $("appMain");
+  const form = $("requestForm");
+  const submitButton = $("submitRequest");
+  const feedback = $("requestFeedback");
+  const requestList = $("requestList");
+  const logoutButton = $("logoutButton");
 
-  const notice = byId("authNotice");
-  const navigation = byId("mainNav");
-  const main = byId("appMain");
-  const form = byId("requestForm");
-  const submitButton = byId("submitRequest");
-  const feedback = byId("requestFeedback");
-  const requestList = byId("requestList");
-  const logoutButton = byId("logoutButton");
-
-  let currentUser = null;
+  let user = null;
   let role = null;
-  let cachedRequests = [];
+  let requests = [];
 
-  // 3. HELPER FUNCTIONS
+  // ==============================
+  // 2. HELPER FUNCTIONS
+  // ==============================
 
-  function setVisible(id, visible) {
-    const element = byId(id);
-    if (!element) return;
+  function show(id, visible) {
+    const node = $(id);
+    if (!node) return;
 
-    element.hidden = !visible;
+    node.hidden = !visible;
 
-    if (!visible) {
-      element.style.display = "none";
+    if (visible) {
+      node.style.removeProperty("display");
     } else {
-      element.style.removeProperty("display");
+      node.style.display = "none";
     }
   }
 
   function showError(message) {
-    console.error("DPR Dashboard:", message);
+    console.error(message);
 
     if (notice) {
       notice.replaceChildren();
 
-      notice.appendChild(
-        document.createTextNode(message + " ")
-      );
+      const text = document.createElement("span");
+      text.textContent = message + " ";
+      notice.appendChild(text);
 
       const link = document.createElement("a");
       link.href = "login.html";
       link.textContent = "Go to Login";
-
       notice.appendChild(link);
-      notice.classList.add("error");
+
       notice.hidden = false;
       notice.style.removeProperty("display");
     }
 
-    setVisible("mainNav", false);
-    setVisible("appMain", false);
+    show("mainNav", false);
+    show("appMain", false);
   }
 
-  function setFeedback(message, isError = false) {
+  function message(text, error = false) {
     if (!feedback) return;
 
-    feedback.textContent = message;
-    feedback.style.color = isError
-      ? "#fb7185"
-      : "#5eead4";
+    feedback.textContent = text;
+    feedback.style.color =
+      error ? "#fb7185" : "#2dd4bf";
   }
 
   function setToday() {
-    const dateInput = byId("requestDate");
+    const dateInput = $("requestDate");
     if (!dateInput) return;
 
     const now = new Date();
 
-    const year = now.getFullYear();
-    const month = String(
+    const y = now.getFullYear();
+    const m = String(
       now.getMonth() + 1
     ).padStart(2, "0");
 
-    const day = String(
+    const d = String(
       now.getDate()
     ).padStart(2, "0");
 
-    dateInput.value = `${year}-${month}-${day}`;
+    dateInput.value = `${y}-${m}-${d}`;
   }
 
-  // 4. CONNECT SUPABASE
+  // ==============================
+  // 3. SUPABASE CONNECTION
+  // ==============================
 
   if (!window.supabase?.createClient) {
-    showError(
-      "Supabase library not loaded. Refresh the page."
-    );
+    showError("Supabase library failed to load.");
     return;
   }
 
-  let db;
-
-  try {
-    db = window.dprClient ||
-      window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_PUBLISHABLE_KEY
-      );
-
-    window.dprClient = db;
-
-  } catch (error) {
-    showError(
-      "Supabase connection failed: " + error.message
+  const db = window.dprClient ||
+    window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY
     );
-    return;
-  }
 
-  // 5. VERIFY LOGIN
+  window.dprClient = db;
+
+  // ==============================
+  // 4. AUTHENTICATION
+  // ==============================
 
   try {
-    const {
-      data: auth,
-      error: authError
-    } = await db.auth.getUser();
+    const { data, error } =
+      await db.auth.getUser();
 
-    if (authError) throw authError;
+    if (error) throw error;
 
-    if (!auth?.user) {
-      window.location.replace("login.html");
+    if (!data?.user) {
+      location.replace("login.html");
       return;
     }
 
-    currentUser = auth.user;
+    user = data.user;
 
-    // CHECK USER ROLE
-
-    const {
-      data: profile,
-      error: profileError
-    } = await db
+    const profileResult = await db
       .from("profiles")
       .select("role")
-      .eq("id", currentUser.id)
+      .eq("id", user.id)
       .single();
 
-    if (profileError) throw profileError;
+    if (profileResult.error) {
+      throw profileResult.error;
+    }
 
-    role = profile?.role;
+    role = profileResult.data?.role;
 
-    if (!["Staff", "Logistic"].includes(role)) {
-      throw new Error("Unsupported user role.")
-        "Your account role is not supported yet."
-      );
+    if (!["Staff", "Logistic", "Production"].includes(role)) {
+      throw new Error("Invalid account role.");
     }
 
   } catch (error) {
     showError(
-      "Cannot verify login or user role: " +
-      error.message
+      "Login verification failed: " + error.message
     );
     return;
   }
 
-  const isLogistic = role === "Logistic";
   const isStaff = role === "Staff";
+  const isLogistic = role === "Logistic";
+  const isProduction = role === "Production";
 
-  // 6. STAFF NAVIGATION
+  // ==============================
+  // 5. ROLE-BASED NAVIGATION
+  // ==============================
 
   [
     "staffNavLink",
     "staffQuickLink",
     "request"
-  ].forEach((id) => {
-    setVisible(id, isStaff);
-     role === "Logistic" || role === "Production"
-  });
-
-  // 7. LOGISTIC NAVIGATION
+  ].forEach(id => show(id, isStaff));
 
   [
     "logisticNavLink",
@@ -198,299 +180,399 @@ document.addEventListener("DOMContentLoaded", async () => {
     "logisticDashboardCard",
     "issuingDashboardCard",
     "receiptDashboardCard"
-  ].forEach((id) => {
-    setVisible(id, isLogistic);
-  });
+  ].forEach(id => show(id, isLogistic));
 
-  // 8. WELCOME MESSAGE
-
-  const welcome = byId("welcomeMessage");
+  const welcome = $("welcomeMessage");
 
   if (welcome) {
     welcome.textContent =
-      `Signed in as ${currentUser.email} (${role})`;
+      `Signed in as ${user.email} (${role})`;
   }
 
-  // 9. EMPLOYEE MANAGEMENT MENU
+  // ==============================
+  // 6. SHARED STYLING
+  // ==============================
 
-  function addEmployeeLinks() {
-    if (!isLogistic || !navigation) return;
+  const extraCSS = document.createElement("style");
 
-    const navArea =
-      navigation.querySelector(".sidebar-nav") ||
-      navigation;
+  extraCSS.textContent = `
+    #mainNav .dpr-nav-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 15px;
+      min-height: 46px;
+      color: #cbd5e1;
+      text-decoration: none;
+      border-radius: 10px;
+      font-size: 14px;
+      border-left: 3px solid transparent;
+    }
+
+    #mainNav .dpr-nav-link:hover {
+      background: #243247;
+      color: #5eead4;
+    }
+
+    #mainNav .dpr-nav-link.active {
+      background: #164e4a;
+      color: #5eead4;
+      border-left-color: #2dd4bf;
+      font-weight: 600;
+    }
+
+    #mainNav .dpr-nav-link[hidden] {
+      display: none !important;
+    }
+
+    #mainNav svg.dpr-icon,
+    #logoutButton svg.dpr-icon {
+      width: 19px !important;
+      height: 19px !important;
+      min-width: 19px !important;
+      min-height: 19px !important;
+      max-width: 19px !important;
+      max-height: 19px !important;
+      flex-shrink: 0 !important;
+      fill: none !important;
+      stroke: currentColor !important;
+    }
+
+    #mainNav svg.dpr-icon *,
+    #logoutButton svg.dpr-icon * {
+      fill: none !important;
+      stroke: currentColor !important;
+    }
+
+    .dpr-extra-card {
+      display: flex !important;
+      flex-direction: column;
+      justify-content: center;
+      gap: 12px;
+      min-height: 145px;
+      padding: 22px;
+      background: #101b2d;
+      border: 1px solid #293548;
+      border-radius: 14px;
+      color: #f8fafc !important;
+      text-decoration: none !important;
+      font-size: 15px;
+      font-weight: 600;
+      transition: 0.2s ease;
+    }
+
+    .dpr-extra-card::before {
+      content: "";
+      width: 32px;
+      height: 4px;
+      border-radius: 4px;
+      background: #2dd4bf;
+    }
+
+    .dpr-extra-card:hover {
+      border-color: #2dd4bf;
+      background: #1b2b40;
+      transform: translateY(-3px);
+    }
+
+    .dpr-extra-card small {
+      font-size: 12px;
+      line-height: 1.5;
+      font-weight: normal;
+      color: #94a3b8;
+    }
+  `;
+
+  document.head.appendChild(extraCSS);
+
+  // ==============================
+  // 7. SIDEBAR MENUS
+  // ==============================
+
+  const navArea =
+    navigation?.querySelector(".sidebar-nav") ||
+    navigation;
+
+  function addMenu(id, label, href, afterId) {
+    if (!navArea) return null;
 
     let link =
-      byId("employeeNavLink") ||
-      navArea.querySelector(
-        'a[href="employees.html"]'
-      );
+      $(id) ||
+      navArea.querySelector(`a[href="${href}"]`);
 
     if (!link) {
       link = document.createElement("a");
+      link.id = id;
+      link.href = href;
+      link.textContent = label;
 
-      link.id = "employeeNavLink";
-      link.href = "employees.html";
-      link.textContent = "Employee Management";
+      const afterNode = $(afterId);
 
-      const receiptLink = navArea.querySelector(
-        '#receiptNavLink, a[href="receipt.html"]'
-      );
-
-      if (receiptLink) {
-        receiptLink.after(link);
+      if (afterNode && afterNode.parentElement === navArea) {
+        afterNode.after(link);
       } else {
         navArea.appendChild(link);
       }
     }
 
     link.hidden = false;
+    link.style.removeProperty("display");
 
-    // ADD EMPLOYEE MANAGEMENT TO QUICK ACCESS
-
-    const receiptQuick = byId("receiptQuickLink");
-
-    const quickArea =
-      receiptQuick?.closest(
-        ".quick-links, .quick-access-grid, " +
-        ".quick-access, .quick-grid"
-      ) ||
-      document.querySelector(
-        "#dashboard .quick-links"
-      );
-
-    if (quickArea && !byId("employeeQuickLink")) {
-      const quickLink = document.createElement("a");
-
-      quickLink.id = "employeeQuickLink";
-      quickLink.href = "employees.html";
-      quickLink.textContent = "Employee Management";
-
-      quickArea.appendChild(quickLink);
-    }
+    return link;
   }
 
-  // 10. SIDEBAR SVG ICONS
+  // EMPLOYEE MANAGEMENT
+  // Staff can view; Logistic can manage.
+  // Actual permissions remain controlled by RLS.
 
-  function decorateSidebar() {
-    if (!navigation) return;
+  if (isStaff || isLogistic) {
+    addMenu(
+      "employeeNavLink",
+      "Employee Management",
+      "employees.html",
+      "receiptNavLink"
+    );
+  } else {
+    show("employeeNavLink", false);
+  }
 
-    const navArea =
-      navigation.querySelector(".sidebar-nav") ||
-      navigation;
+  // MATERIAL RETURN
+  // Production submits; Logistic reviews.
 
-    const shapes = {
-      dashboard:
-        '<rect x="3" y="3" width="7" height="7" rx="1"/>' +
-        '<rect x="14" y="3" width="7" height="7" rx="1"/>' +
-        '<rect x="3" y="14" width="7" height="7" rx="1"/>' +
-        '<rect x="14" y="14" width="7" height="7" rx="1"/>',
+  if (isProduction || isLogistic) {
+    addMenu(
+      "returnNavLink",
+      "Material Return",
+      "material-return.html",
+      "issuingNavLink"
+    );
+  } else {
+    show("returnNavLink", false);
+  }
 
-      create:
-        '<path d="M8 3h8l5 5v13H3V3z"/>' +
-        '<path d="M16 3v5h5M12 12v6M9 15h6"/>',
+  // ==============================
+  // 8. SIDEBAR ICONS
+  // ==============================
 
-      history:
-        '<path d="M3 12a9 9 0 1 0 3-6.7' +
-        'M3 3v5h5M12 7v5l4 2"/>',
+  const icons = {
+    dashboard:
+      '<rect x="3" y="3" width="7" height="7" rx="1"/>' +
+      '<rect x="14" y="3" width="7" height="7" rx="1"/>' +
+      '<rect x="3" y="14" width="7" height="7" rx="1"/>' +
+      '<rect x="14" y="14" width="7" height="7" rx="1"/>',
 
-      approval:
-        '<rect x="5" y="4" width="14" height="17" rx="2"/>' +
-        '<path d="M9 4.5h6m-6 9 2 2 4-4"/>',
+    request:
+      '<path d="M8 3h8l5 5v13H3V3z"/>' +
+      '<path d="M16 3v5h5M12 12v6M9 15h6"/>',
 
-      issuing:
-        '<path d="m3 7 9-4 9 4-9 4z' +
-        'M3 7v10l9 4 9-4V7' +
-        'M12 11v10m4-6 2 2 3-3"/>',
+    history:
+      '<path d="M3 12a9 9 0 1 0 3-6.7"/>' +
+      '<path d="M3 3v5h5M12 7v5l4 2"/>',
 
-      receipt:
-        '<rect x="3" y="5" width="18" height="14" rx="2"/>' +
-        '<path d="m3 7 9 6 9-6"/>',
+    approval:
+      '<rect x="5" y="4" width="14" height="17" rx="2"/>' +
+      '<path d="M9 4h6M9 13l2 2 4-4"/>',
 
-      employees:
-        '<circle cx="9" cy="8" r="3"/>' +
-        '<path d="M3 20v-2a6 6 0 0 1 12 0v2' +
-        'M17 5a3 3 0 0 1 0 6' +
-        'm1 3a5 5 0 0 1 3 5"/>',
+    issuing:
+      '<path d="m3 7 9-4 9 4-9 4z"/>' +
+      '<path d="M3 7v10l9 4 9-4V7"/>' +
+      '<path d="M12 11v10M16 15l2 2 3-3"/>',
 
-      logout:
-        '<path d="m10 17 5-5-5-5' +
-        'M15 12H3' +
-        'M12 3h6a3 3 0 0 1 3 3v12' +
-        'a3 3 0 0 1-3 3h-6"/>'
-    };
+    receipt:
+      '<rect x="3" y="5" width="18" height="14" rx="2"/>' +
+      '<path d="m3 7 9 6 9-6"/>',
 
-    // CREATE SVG
+    employees:
+      '<circle cx="9" cy="8" r="3"/>' +
+      '<path d="M3 20v-2a6 6 0 0 1 12 0v2"/>' +
+      '<path d="M17 5a3 3 0 0 1 0 6"/>' +
+      '<path d="M18 14a5 5 0 0 1 3 5"/>',
 
-    function icon(type) {
-      const svg = document.createElementNS(
-        "http://www.w3.org/2000/svg",
-        "svg"
-      );
+    return:
+      '<path d="M3 7v6h6"/>' +
+      '<path d="M3 13a9 9 0 1 0 3-7"/>' +
+      '<path d="m3 7 3-3"/>',
 
-      svg.setAttribute("class", "dpr-menu-icon");
-      svg.setAttribute("viewBox", "0 0 24 24");
-      svg.setAttribute("width", "19");
-      svg.setAttribute("height", "19");
-      svg.setAttribute("fill", "none");
-      svg.setAttribute("stroke", "currentColor");
-      svg.setAttribute("stroke-width", "1.8");
-      svg.setAttribute("stroke-linecap", "round");
-      svg.setAttribute("stroke-linejoin", "round");
-      svg.setAttribute("aria-hidden", "true");
+    logout:
+      '<path d="m10 17 5-5-5-5"/>' +
+      '<path d="M15 12H3"/>' +
+      '<path d="M12 3h6a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3h-6"/>'
+  };
 
-      svg.innerHTML = shapes[type];
+  function createIcon(type) {
+    const svg = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "svg"
+    );
 
-      // PREVENT OVERSIZED ICONS
+    svg.setAttribute("class", "dpr-icon");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("width", "19");
+    svg.setAttribute("height", "19");
+    svg.setAttribute("fill", "none");
+    svg.setAttribute("stroke", "currentColor");
+    svg.setAttribute("stroke-width", "1.8");
+    svg.setAttribute("stroke-linecap", "round");
+    svg.setAttribute("stroke-linejoin", "round");
+    svg.setAttribute("aria-hidden", "true");
 
-      [
-        "width",
-        "height",
-        "min-width",
-        "min-height",
-        "max-width",
-        "max-height"
-      ].forEach((prop) => {
-        svg.style.setProperty(
-          prop,
-          "19px",
-          "important"
-        );
-      });
+    svg.innerHTML = icons[type];
 
-      svg.style.setProperty(
-        "flex-shrink",
-        "0",
-        "important"
-      );
+    return svg;
+  }
 
-      svg.style.setProperty(
-        "fill",
-        "none",
-        "important"
-      );
-
-      return svg;
-    }
-
-    // IDENTIFY MENU ICONS
-
-    for (const link of navArea.querySelectorAll("a")) {
-      const label =
-        (link.textContent || "").trim().toLowerCase();
-
+  if (navArea) {
+    navArea.querySelectorAll("a").forEach(link => {
       const href =
-        (link.getAttribute("href") || "").toLowerCase();
+        (link.getAttribute("href") || "")
+          .toLowerCase();
+
+      const label =
+        (link.textContent || "")
+          .trim()
+          .toLowerCase();
 
       let type = null;
 
-      if (
-        href.includes("employees.html") ||
-        label.includes("employee")
-      ) {
+      if (href.includes("material-return.html")) {
+        type = "return";
+      } else if (href.includes("employees.html")) {
         type = "employees";
-
-      } else if (
-        href.includes("logistic.html") ||
-        label.includes("approval")
-      ) {
+      } else if (href.includes("logistic.html")) {
         type = "approval";
-
-      } else if (
-        href.includes("issuing.html") ||
-        label.includes("issuing")
-      ) {
+      } else if (href.includes("issuing.html")) {
         type = "issuing";
-
-      } else if (
-        href.includes("receipt.html") ||
-        label.includes("receipt")
-      ) {
+      } else if (href.includes("receipt.html")) {
         type = "receipt";
-
-      } else if (
-        href === "#history" ||
-        label.includes("history")
-      ) {
+      } else if (href === "#history") {
         type = "history";
-
-      } else if (
-        href === "#request" ||
-        label.includes("create")
-      ) {
-        type = "create";
-
-      } else if (
-        href === "#dashboard" ||
-        label === "dashboard"
-      ) {
+      } else if (href === "#request") {
+        type = "request";
+      } else if (href === "#dashboard") {
         type = "dashboard";
+      } else if (label.includes("employee")) {
+        type = "employees";
+      } else if (label.includes("return")) {
+        type = "return";
       }
 
-      if (!type) continue;
+      if (!type) return;
 
-      // REMOVE OLD ICONS ONLY
+      link.classList.add("dpr-nav-link");
 
+      // Remove previous decorative icons.
       link.querySelectorAll(
         "svg, i, .nav-icon, .menu-icon"
-      ).forEach((node) => node.remove());
+      ).forEach(node => node.remove());
 
-      link.prepend(icon(type));
-
-      link.style.display =
-        link.hidden ? "none" : "flex";
-
-      link.style.alignItems = "center";
-      link.style.gap = "12px";
-    }
-
-    // LOGOUT ICON
-
-    if (
-      logoutButton &&
-      !logoutButton.querySelector(".dpr-menu-icon")
-    ) {
-      logoutButton.prepend(icon("logout"));
-
-      logoutButton.style.display = "flex";
-      logoutButton.style.alignItems = "center";
-      logoutButton.style.justifyContent = "center";
-      logoutButton.style.gap = "10px";
-    }
-  }
-
-  // 11. ACTIVE SIDEBAR MENU
-
-  function updateActiveMenu() {
-    if (!navigation) return;
-
-    const hash =
-      window.location.hash || "#dashboard";
-
-    const navArea =
-      navigation.querySelector(".sidebar-nav") ||
-      navigation;
-
-    const links = navArea.querySelectorAll(
-      'a[href^="#"]'
-    );
-
-    links.forEach((link) => {
-      const active =
-        link.getAttribute("href") === hash;
-
-      link.classList.toggle("active", active);
-
-      if (active) {
-        link.setAttribute("aria-current", "page");
-      } else {
-        link.removeAttribute("aria-current");
-      }
+      link.prepend(createIcon(type));
     });
   }
 
-  addEmployeeLinks();
-  decorateSidebar();
+  if (logoutButton) {
+    logoutButton.querySelectorAll(
+      "svg.dpr-icon"
+    ).forEach(node => node.remove());
+
+    logoutButton.prepend(createIcon("logout"));
+    logoutButton.style.display = "flex";
+    logoutButton.style.alignItems = "center";
+    logoutButton.style.justifyContent = "center";
+    logoutButton.style.gap = "10px";
+  }
+
+  // ==============================
+  // 9. QUICK ACCESS CARDS
+  // ==============================
+
+  function getQuickArea() {
+    const anchor =
+      $("receiptQuickLink") ||
+      $("issuingQuickLink") ||
+      $("approvalQuickLink") ||
+      $("staffQuickLink");
+
+    return anchor?.closest(
+      ".quick-links, .quick-access-grid, " +
+      ".quick-access, .quick-grid"
+    ) || document.querySelector(
+      "#dashboard .quick-links"
+    );
+  }
+
+  function addQuickCard(id, title, description, href) {
+    const area = getQuickArea();
+    if (!area) return;
+
+    let card = $(id);
+
+    if (!card) {
+      card = document.createElement("a");
+      card.id = id;
+      area.appendChild(card);
+    }
+
+    card.href = href;
+    card.classList.add("dpr-extra-card");
+
+    card.replaceChildren();
+
+    const titleNode = document.createElement("strong");
+    titleNode.textContent = title;
+
+    const descNode = document.createElement("small");
+    descNode.textContent = description;
+
+    card.append(titleNode, descNode);
+
+    card.hidden = false;
+    card.style.removeProperty("display");
+  }
+
+  if (isLogistic) {
+    addQuickCard(
+      "employeeQuickLink",
+      "Employee Management",
+      "Manage Logistic and Production employees.",
+      "employees.html"
+    );
+  }
+
+  if (isLogistic || isProduction) {
+    addQuickCard(
+      "returnQuickLink",
+      "Material Return",
+      isProduction
+        ? "Submit raw material returns."
+        : "Review Production material returns.",
+      "material-return.html"
+    );
+  }
+
+  // ==============================
+  // 10. ACTIVE SIDEBAR
+  // ==============================
+
+  function updateActiveMenu() {
+    if (!navArea) return;
+
+    const hash = location.hash || "#dashboard";
+
+    navArea.querySelectorAll('a[href^="#"]')
+      .forEach(link => {
+        const active =
+          link.getAttribute("href") === hash;
+
+        link.classList.toggle("active", active);
+
+        if (active) {
+          link.setAttribute("aria-current", "page");
+        } else {
+          link.removeAttribute("aria-current");
+        }
+      });
+  }
+
   updateActiveMenu();
 
   window.addEventListener(
@@ -498,22 +580,26 @@ document.addEventListener("DOMContentLoaded", async () => {
     updateActiveMenu
   );
 
-  // 12. SHOW DASHBOARD
+  // ==============================
+  // 11. SHOW DASHBOARD
+  // ==============================
 
   if (notice) {
     notice.hidden = true;
     notice.style.display = "none";
   }
 
-  setVisible("mainNav", true);
-  setVisible("appMain", true);
+  show("mainNav", true);
+  show("appMain", true);
 
   document.body.style.visibility = "visible";
 
-  // 13. REQUEST HISTORY SEARCH & FILTER
+  // ==============================
+  // 12. REQUEST HISTORY
+  // ==============================
 
-  const searchInput = byId("requestSearch");
-  const statusFilter = byId("requestStatusFilter");
+  const searchInput = $("requestSearch");
+  const statusFilter = $("requestStatusFilter");
 
   function renderRequests(rows) {
     if (!requestList) return;
@@ -522,7 +608,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (!rows.length) {
       const empty = document.createElement("p");
-
       empty.textContent = "No requests found.";
       requestList.appendChild(empty);
       return;
@@ -534,8 +619,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const table = document.createElement("table");
     table.className = "request-table";
 
-    const thead = document.createElement("thead");
-    const headRow = document.createElement("tr");
+    const head = document.createElement("thead");
+    const heading = document.createElement("tr");
 
     [
       "Request ID",
@@ -544,32 +629,28 @@ document.addEventListener("DOMContentLoaded", async () => {
       "Product Model",
       "Quantity",
       "Status"
-    ].forEach((label) => {
+    ].forEach(text => {
       const th = document.createElement("th");
-
-      th.textContent = label;
-      headRow.appendChild(th);
+      th.textContent = text;
+      heading.appendChild(th);
     });
 
-    thead.appendChild(headRow);
-    table.appendChild(thead);
+    head.appendChild(heading);
+    table.appendChild(head);
 
-    const tbody = document.createElement("tbody");
+    const body = document.createElement("tbody");
 
-    rows.forEach((request) => {
+    rows.forEach(request => {
       const tr = document.createElement("tr");
 
-      const values = [
+      [
         request.request_id,
         request.request_date,
         request.staff_id,
         request.product_model,
         request.production_quantity
-      ];
-
-      values.forEach((value) => {
+      ].forEach(value => {
         const td = document.createElement("td");
-
         td.textContent = String(value ?? "");
         tr.appendChild(td);
       });
@@ -581,16 +662,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         "status-pill " +
         String(request.status || "").toLowerCase();
 
-      badge.textContent =
-        request.status || "Unknown";
+      badge.textContent = request.status || "Unknown";
 
       td.appendChild(badge);
       tr.appendChild(td);
-
-      tbody.appendChild(tr);
+      body.appendChild(tr);
     });
 
-    table.appendChild(tbody);
+    table.appendChild(body);
     wrapper.appendChild(table);
     requestList.appendChild(wrapper);
   }
@@ -601,25 +680,24 @@ document.addEventListener("DOMContentLoaded", async () => {
         .trim()
         .toLowerCase();
 
-    const selectedStatus =
+    const status =
       statusFilter?.value || "All";
 
-    const filtered = cachedRequests.filter((r) => {
-      const matchesText = [
+    const filtered = requests.filter(r => {
+      const textMatch = [
         r.request_id,
         r.staff_id,
         r.product_model
-      ].some((value) =>
+      ].some(value =>
         String(value ?? "")
           .toLowerCase()
           .includes(keyword)
       );
 
-      const matchesStatus =
-        selectedStatus === "All" ||
-        r.status === selectedStatus;
+      const statusMatch =
+        status === "All" || r.status === status;
 
-      return matchesText && matchesStatus;
+      return textMatch && statusMatch;
     });
 
     renderRequests(filtered);
@@ -635,7 +713,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     filterRequests
   );
 
-  // 14. LOAD REQUESTS FROM SUPABASE
+  // ==============================
+  // 13. LOAD REQUESTS
+  // ==============================
 
   async function loadRequests() {
     if (requestList) {
@@ -652,58 +732,49 @@ document.addEventListener("DOMContentLoaded", async () => {
         )
         .order("created_at", { ascending: false });
 
-      // STAFF ONLY VIEW THEIR OWN REQUESTS
-
       if (isStaff) {
-        query = query.eq(
-          "requested_by",
-          currentUser.id
-        );
+        query = query.eq("requested_by", user.id);
       }
 
       const { data, error } = await query;
 
       if (error) throw error;
 
-      cachedRequests = data || [];
+      requests = data || [];
 
-      // DASHBOARD STATISTICS
-
-      [
+      for (const status of [
         "Pending",
         "Approved",
         "Rejected"
-      ].forEach((status) => {
-        const counter = byId(
-          status.toLowerCase() + "Count"
-        );
+      ]) {
+        const counter =
+          $(status.toLowerCase() + "Count");
 
         if (counter) {
           counter.textContent = String(
-            cachedRequests.filter(
-              (r) => r.status === status
+            requests.filter(r =>
+              r.status === status
             ).length
           );
         }
-      });
+      }
 
       filterRequests();
 
     } catch (error) {
-      console.error(
-        "Cannot load requests:",
-        error
-      );
+      console.error(error);
 
       if (requestList) {
         requestList.textContent =
-          "Cannot load requests: " +
+          "Unable to load requests: " +
           error.message;
       }
     }
   }
 
-  // 15. CREATE REQUEST - STAFF ONLY
+  // ==============================
+  // 14. CREATE REQUEST
+  // ==============================
 
   if (isStaff && form && submitButton) {
     setToday();
@@ -713,50 +784,48 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     form.addEventListener(
       "submit",
-      async (event) => {
+      async event => {
         event.preventDefault();
 
         if (submitButton.disabled) return;
         if (!form.reportValidity()) return;
 
         const requestId =
-          byId("requestId")?.value.trim() || "";
+          $("requestId")?.value.trim() || "";
 
         const requestDate =
-          byId("requestDate")?.value || "";
+          $("requestDate")?.value || "";
 
         const staffId =
-          byId("staffId")?.value.trim() || "";
+          $("staffId")?.value.trim() || "";
 
         const productModel =
-          byId("productModel")?.value.trim() || "";
+          $("productModel")?.value.trim() || "";
 
-        const productionQuantity = Number(
-          byId("productionQuantity")?.value
+        const qty = Number(
+          $("productionQuantity")?.value
         );
 
         const remarks =
-          byId("remarks")?.value.trim() || "";
-
-        // VALIDATION
+          $("remarks")?.value.trim() || "";
 
         if (
           !requestId ||
           !requestDate ||
           !staffId ||
           !productModel ||
-          !Number.isSafeInteger(productionQuantity) ||
-          productionQuantity < 1
+          !Number.isSafeInteger(qty) ||
+          qty <= 0
         ) {
-          setFeedback(
-            "Please complete all required fields correctly.",
+          message(
+            "Please complete all required fields.",
             true
           );
           return;
         }
 
         submitButton.disabled = true;
-        setFeedback("Submitting request...");
+        message("Submitting request...");
 
         try {
           const { error } = await db
@@ -764,11 +833,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             .insert({
               request_id: requestId,
               request_date: requestDate,
-              requested_by: currentUser.id,
+              requested_by: user.id,
               staff_id: staffId,
               product_model: productModel,
-              production_quantity: productionQuantity,
-              remarks: remarks,
+              production_quantity: qty,
+              remarks,
               status: "Pending"
             });
 
@@ -777,19 +846,17 @@ document.addEventListener("DOMContentLoaded", async () => {
           form.reset();
           setToday();
 
-          setFeedback(
-            "Request submitted successfully!"
-          );
+          message("Request submitted successfully!");
 
           await loadRequests();
 
         } catch (error) {
-          const message =
+          message(
             error.code === "23505"
-              ? "Request ID already exists. Enter another Request ID."
-              : "Unable to submit: " + error.message;
-
-          setFeedback(message, true);
+              ? "Request ID already exists."
+              : "Unable to submit: " + error.message,
+            true
+          );
 
         } finally {
           submitButton.disabled = false;
@@ -798,7 +865,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     );
   }
 
-  // 16. LOGOUT
+  // ==============================
+  // 15. LOGOUT
+  // ==============================
 
   logoutButton?.addEventListener(
     "click",
@@ -810,25 +879,26 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (error) throw error;
 
-        window.location.replace("login.html");
+        location.replace("login.html");
 
       } catch (error) {
         logoutButton.disabled = false;
 
         alert(
-          "Unable to log out: " +
-          error.message
+          "Logout failed: " + error.message
         );
       }
     }
   );
 
-  // 17. INITIAL LOAD
+  // ==============================
+  // 16. INITIAL LOAD
+  // ==============================
 
   await loadRequests();
 
   console.log(
-    "DPR DASHBOARD FIX V3 - role:",
+    "DPR DASHBOARD V4 LOADED - ROLE:",
     role
   );
 });
