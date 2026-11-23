@@ -468,18 +468,22 @@ document.addEventListener("DOMContentLoaded", async () => {
       link.prepend(createIcon(type));
     });
   }
+   
+if (logoutButton) {
+  // Remove all existing logout SVG icons
+  logoutButton.querySelectorAll("svg").forEach(icon => {
+    icon.remove();
+  });
 
-  if (logoutButton) {
-    logoutButton.querySelectorAll(
-      "svg.dpr-icon"
-    ).forEach(node => node.remove());
+  // Add one new logout icon
+  logoutButton.prepend(createIcon("logout"));
 
-    logoutButton.prepend(createIcon("logout"));
-    logoutButton.style.display = "flex";
-    logoutButton.style.alignItems = "center";
-    logoutButton.style.justifyContent = "center";
-    logoutButton.style.gap = "10px";
-  }
+  logoutButton.style.display = "flex";
+  logoutButton.style.alignItems = "center";
+  logoutButton.style.justifyContent = "center";
+  logoutButton.style.gap = "10px";
+}
+
 
   // ==============================
   // 9. QUICK ACCESS CARDS
