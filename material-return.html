@@ -2,94 +2,232 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1.0">
-  <title>Material Return | DPR</title>
-  <link rel="stylesheet" href="dpr-theme.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Material Return | DPR</title>
 
-  <style>
-    * { box-sizing: border-box; }
+<link rel="stylesheet" href="dpr-theme.css">
 
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      display: grid;
-      grid-template-columns: 245px minmax(0, 1fr);
-      min-height: 100vh;
-    }
+<style>
+* { box-sizing:border-box; }
 
-    aside {
-      padding: 26px 15px;
-      background: #0f172a;
-      border-right: 1px solid #293548;
-    }
+body {
+  margin:0;
+  display:grid;
+  grid-template-columns:245px minmax(0,1fr);
+  min-height:100vh;
+  font-family:Arial,sans-serif;
+  background:#0b1120;
+  color:#f1f5f9;
+}
 
-    aside h2 { font-size: 18px; }
-    aside p { color: #94a3b8; font-size: 12px; }
+.sidebar {
+  background:#0f172a;
+  border-right:1px solid #293548;
+  padding:26px 15px;
+}
 
-    nav {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-top: 28px;
-    }
+.sidebar h2 {
+  font-size:18px;
+  line-height:1.4;
+  margin:0 0 9px;
+}
 
-    nav a {
-      color: #cbd5e1;
-      text-decoration: none;
-      padding: 13px;
-      border-radius: 9px;
-    }
+.sidebar p {
+  color:#94a3b8;
+  font-size:12px;
+  margin-bottom:28px;
+}
 
-    nav a.active {
-      background: #164e4a;
-      color: #5eead4;
-    }
+.sidebar nav {
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+}
 
-    main { min-width: 0; padding: 35px; }
+.sidebar nav a {
+  display:flex;
+  align-items:center;
+  padding:13px;
+  border-radius:9px;
+  color:#cbd5e1;
+  text-decoration:none;
+  font-size:14px;
+}
 
-    .card {
-      background: #151f32;
-      border: 1px solid #293548;
-      border-radius: 14px;
-      padding: 24px;
-      margin-top: 20px;
-    }
+.sidebar nav a:hover {
+  background:#243247;
+}
 
-    .muted { color: #94a3b8; }
+.sidebar nav a.active {
+  background:#164e4a;
+  color:#5eead4;
+}
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
+main {
+  padding:35px;
+  min-width:0;
+}
 
-    th, td {
-      text-align: left;
-      padding: 14px;
-      border-bottom: 1px solid #293548;
-    }
+h1 { margin:0 0 8px; }
 
-    .table-wrap { overflow-x: auto; }
+.subtitle {
+  font-size:14px;
+  color:#94a3b8;
+}
 
-    [hidden] { display: none !important; }
+.card {
+  background:#151f32;
+  border:1px solid #293548;
+  border-radius:14px;
+  padding:25px;
+  margin-top:22px;
+}
 
-    @media (max-width: 768px) {
-      body { display: block; }
-      aside { padding: 18px; }
-      main { padding: 18px; }
-    }
-  </style>
+.card h2 {
+  margin-top:0;
+  font-size:20px;
+}
+
+.form-grid {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:18px;
+  margin-top:20px;
+}
+
+.full { grid-column:1 / -1; }
+
+label {
+  display:block;
+  margin-bottom:8px;
+  color:#cbd5e1;
+  font-size:13px;
+}
+
+input,select,textarea {
+  width:100%;
+  padding:13px;
+  background:#101b2d;
+  color:white;
+  border:1px solid #334155;
+  border-radius:9px;
+  font:inherit;
+}
+
+input:focus,select:focus,textarea:focus {
+  outline:2px solid #2dd4bf;
+}
+
+button {
+  background:#0d9488;
+  color:white;
+  border:0;
+  padding:13px 20px;
+  border-radius:9px;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+button:disabled {
+  opacity:.55;
+  cursor:not-allowed;
+}
+
+.stats {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:15px;
+  margin-top:18px;
+}
+
+.stat {
+  background:#101b2d;
+  border:1px solid #293548;
+  padding:18px;
+  border-radius:11px;
+}
+
+.stat strong {
+  display:block;
+  color:#2dd4bf;
+  font-size:27px;
+  margin-top:8px;
+}
+
+.message {
+  padding:12px 15px;
+  border-radius:9px;
+  margin-top:15px;
+  background:#122b38;
+  color:#a5dce5;
+}
+
+.message.error {
+  background:#422127;
+  color:#fda4af;
+}
+
+.table-wrap { overflow-x:auto; }
+
+table {
+  width:100%;
+  min-width:550px;
+  border-collapse:collapse;
+}
+
+th,td {
+  padding:14px;
+  border-bottom:1px solid #293548;
+  text-align:left;
+  font-size:13px;
+}
+
+th {
+  background:#243247;
+}
+
+.status {
+  color:#fbbf24;
+}
+
+[hidden] { display:none !important; }
+
+@media(max-width:768px) {
+  body { display:block; }
+  main { padding:18px; }
+  .form-grid,.stats {
+    grid-template-columns:1fr;
+  }
+  .full { grid-column:auto; }
+}
+</style>
 </head>
 
 <body>
 
-<aside>
+<aside class="sidebar">
   <h2>Digital Production Request</h2>
   <p>Raw Material Request System</p>
 
   <nav>
     <a href="index.html">Dashboard</a>
+
+    <a href="logistic.html"
+       class="logistic-only" hidden>
+      Logistic Approval
+    </a>
+
+    <a href="issuing.html"
+       class="logistic-only" hidden>
+      Material Issuing
+    </a>
+
+    <a href="employees.html"
+       class="logistic-only" hidden>
+      Employee Management
+    </a>
+
     <a href="material-return.html" class="active">
       ↩ Material Return
     </a>
@@ -97,52 +235,210 @@
 </aside>
 
 <main>
+
   <h1>Material Return</h1>
-  <p class="muted">
-    Track material returns from Production to Logistic.
+  <p class="subtitle">
+    Return issued raw materials from Production
+    to Logistic.
   </p>
 
-  <p id="roleInfo">Checking login...</p>
+  <p class="subtitle" id="roleInfo">
+    Checking login...
+  </p>
+
+  <div id="message" role="status" hidden></div>
+
+  <!-- PRODUCTION RETURN FORM -->
+
+  <section id="productionForm" class="card" hidden>
+
+    <h2>Create Material Return</h2>
+
+    <p class="subtitle">
+      Select an issued material and enter the quantity
+      to return.
+    </p>
+
+    <form id="returnForm" class="form-grid">
+
+      <div class="full">
+        <label for="requestSelect">Request ID</label>
+        <select id="requestSelect" required>
+          <option value="">Select Request</option>
+        </select>
+      </div>
+
+      <div class="full">
+        <label for="materialSelect">Material</label>
+        <select id="materialSelect" required>
+          <option value="">Select Material</option>
+        </select>
+      </div>
+
+      <div class="full stats">
+
+        <div class="stat">
+          Issued Quantity
+          <strong id="issuedQty">0</strong>
+        </div>
+
+        <div class="stat">
+          Available to Return
+          <strong id="remainingQty">0</strong>
+        </div>
+
+      </div>
+
+      <div>
+        <label for="returnQty">Return Quantity</label>
+        <input
+          type="number"
+          id="returnQty"
+          min="0.01"
+          step="any"
+          required>
+      </div>
+
+      <div>
+        <label for="reason">Return Reason</label>
+        <select id="reason" required>
+          <option value="">Select Reason</option>
+          <option>Excess Material</option>
+          <option>Defective</option>
+          <option>Damaged</option>
+          <option>Wrong Material</option>
+          <option>Other</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="condition">Material Condition</label>
+        <select id="condition">
+          <option>Good</option>
+          <option>Defective</option>
+          <option>Damaged</option>
+          <option>Unknown</option>
+        </select>
+      </div>
+
+      <div class="full">
+        <label for="remarks">Remarks</label>
+        <textarea
+          id="remarks"
+          rows="3"
+          placeholder="Enter return remarks...">
+        </textarea>
+      </div>
+
+      <div class="full">
+        <button id="submitBtn" type="submit" disabled>
+          Submit Material Return
+        </button>
+      </div>
+
+    </form>
+
+  </section>
+
+  <!-- RETURN HISTORY -->
 
   <section class="card">
-    <h2>Return History</h2>
-    <p class="muted">
-      Existing return records will appear here.
-    </p>
+
+    <h2>Material Return History</h2>
 
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
             <th>Return ID</th>
-            <th>Submitted At</th>
+            <th>Date</th>
             <th>Status</th>
           </tr>
         </thead>
+
         <tbody id="returnRows">
-          <tr><td colspan="3">Loading...</td></tr>
+          <tr>
+            <td colspan="3">Loading...</td>
+          </tr>
         </tbody>
       </table>
     </div>
+
   </section>
+
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
 document.addEventListener("DOMContentLoaded", async () => {
+  "use strict";
+
+  const SUPABASE_URL =
+    "https://swyzpswrncaghdfnphhc.supabase.co";
+
+  const SUPABASE_KEY =
+    "sb_publishable_Rek9NATddqXIwNN0UQ6cUw_Iuh5aRoE";
+
+  const el = id => document.getElementById(id);
+
+  const message = el("message");
+
+  function showMessage(text, error = false) {
+    message.hidden = false;
+    message.textContent = text;
+    message.className =
+      error ? "message error" : "message";
+  }
+
+  function addOption(select, value, label) {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = label;
+    select.appendChild(option);
+  }
+
+  function showTableMessage(text) {
+    const tbody = el("returnRows");
+    tbody.replaceChildren();
+
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = 3;
+    td.textContent = text;
+    tr.appendChild(td);
+    tbody.appendChild(tr);
+  }
+
+  if (!window.supabase?.createClient) {
+    showMessage("Supabase library could not load.", true);
+    return;
+  }
+
+  if (SUPABASE_KEY.includes("PASTE_YOUR")) {
+    showMessage(
+      "Please configure your Supabase publishable key.",
+      true
+    );
+    return;
+  }
+
   const db = window.supabase.createClient(
-    "https://swyzpswrncaghdfnphhc.supabase.co",
-    ""sb_publishable_Rek9NATddqXIwNN0UQ6cUw_Iuh5aRoE""
+    SUPABASE_URL,
+    SUPABASE_KEY
   );
 
-  const roleInfo = document.getElementById("roleInfo");
-  const rows = document.getElementById("returnRows");
+  let role = null;
+  let returnableMaterials = [];
+  let selectedMaterial = null;
+
+  // 1. AUTHENTICATION
 
   const { data: auth, error: authError } =
     await db.auth.getUser();
 
   if (authError || !auth?.user) {
-    location.replace("login.html");
+    window.location.replace("login.html");
     return;
   }
 
@@ -152,50 +448,303 @@ document.addEventListener("DOMContentLoaded", async () => {
       .eq("id", auth.user.id)
       .single();
 
-  if (roleError ||
-      !["Logistic", "Production"].includes(profile?.role)) {
-    roleInfo.textContent = "Access denied.";
-    rows.innerHTML = '<tr><td colspan="3">Access denied</td></tr>';
+  if (
+    roleError ||
+    !["Production", "Logistic"].includes(profile?.role)
+  ) {
+    el("roleInfo").textContent = "Access denied.";
+    showTableMessage("Access denied.");
     return;
   }
 
-  roleInfo.textContent = "Role: " + profile.role;
+  role = profile.role;
 
-  const { data, error } = await db
-    .from("material_returns")
-    .select("return_no, submitted_at, status")
-    .order("submitted_at", { ascending: false });
+  el("roleInfo").textContent =
+    `${auth.user.email} | Role: ${role}`;
 
-  rows.replaceChildren();
+  document.querySelectorAll(".logistic-only")
+    .forEach(link => {
+      link.hidden = role !== "Logistic";
+    });
 
-  if (error || !data?.length) {
-    const tr = document.createElement("tr");
-    const td = document.createElement("td");
-    td.colSpan = 3;
-    td.textContent = error
-      ? "Error: " + error.message
-      : "No material returns yet.";
-    tr.appendChild(td);
-    rows.appendChild(tr);
-    return;
-  }
+  el("productionForm").hidden =
+    role !== "Production";
 
-  for (const item of data) {
-    const tr = document.createElement("tr");
+  // 2. GET RETURNABLE MATERIALS
 
-    for (const value of [
-      item.return_no,
-      new Date(item.submitted_at).toLocaleString(),
-      item.status
-    ]) {
-      const td = document.createElement("td");
-      td.textContent = value ?? "";
-      tr.appendChild(td);
+  async function loadReturnableMaterials() {
+    const { data, error } = await db.rpc(
+      "get_returnable_materials"
+    );
+
+    if (error) {
+      showMessage(
+        "Cannot load materials: " + error.message,
+        true
+      );
+      return;
     }
 
-    rows.appendChild(tr);
+    returnableMaterials = data || [];
+
+    const requestSelect = el("requestSelect");
+    requestSelect.replaceChildren();
+
+    addOption(
+      requestSelect,
+      "",
+      "Select Request"
+    );
+
+    const uniqueRequests = new Map();
+
+    returnableMaterials.forEach(item => {
+      uniqueRequests.set(
+        item.request_uuid,
+        {
+          request_id: item.request_id,
+          product_model: item.product_model
+        }
+      );
+    });
+
+    uniqueRequests.forEach((value, key) => {
+      addOption(
+        requestSelect,
+        key,
+        `${value.request_id} — ${value.product_model}`
+      );
+    });
+
+    updateMaterials();
   }
+
+  // 3. FILTER MATERIALS BY REQUEST
+
+  function updateMaterials() {
+    const requestUuid =
+      el("requestSelect").value;
+
+    const materialSelect =
+      el("materialSelect");
+
+    materialSelect.replaceChildren();
+
+    addOption(
+      materialSelect,
+      "",
+      "Select Material"
+    );
+
+    returnableMaterials
+      .filter(item =>
+        item.request_uuid === requestUuid
+      )
+      .forEach(item => {
+        addOption(
+          materialSelect,
+          item.material_id,
+          `${item.material_code} — ${item.material_name}`
+        );
+      });
+
+    updateQuantity();
+  }
+
+  // 4. SHOW ISSUED AND REMAINING QTY
+
+  function updateQuantity() {
+    const requestUuid =
+      el("requestSelect").value;
+
+    const materialId =
+      el("materialSelect").value;
+
+    selectedMaterial =
+      returnableMaterials.find(item =>
+        item.request_uuid === requestUuid &&
+        item.material_id === materialId
+      ) || null;
+
+    el("issuedQty").textContent =
+      selectedMaterial?.issued_qty ?? 0;
+
+    el("remainingQty").textContent =
+      selectedMaterial?.remaining_qty ?? 0;
+
+    el("returnQty").value = "";
+
+    el("returnQty").max =
+      selectedMaterial?.remaining_qty ?? 0;
+
+    el("submitBtn").disabled =
+      !selectedMaterial;
+  }
+
+  el("requestSelect").addEventListener(
+    "change",
+    updateMaterials
+  );
+
+  el("materialSelect").addEventListener(
+    "change",
+    updateQuantity
+  );
+
+  // 5. SUBMIT MATERIAL RETURN
+
+  el("returnForm").addEventListener(
+    "submit",
+    async event => {
+      event.preventDefault();
+
+      if (role !== "Production") return;
+      if (!selectedMaterial) return;
+
+      const qty = Number(
+        el("returnQty").value
+      );
+
+      const remaining = Number(
+        selectedMaterial.remaining_qty
+      );
+
+      const reason = el("reason").value;
+
+      if (
+        !Number.isFinite(qty) ||
+        qty <= 0 ||
+        qty > remaining
+      ) {
+        showMessage(
+          "Invalid return quantity.",
+          true
+        );
+        return;
+      }
+
+      if (!reason) {
+        showMessage(
+          "Please select a return reason.",
+          true
+        );
+        return;
+      }
+
+      const button = el("submitBtn");
+
+      button.disabled = true;
+      showMessage("Submitting material return...");
+
+      try {
+        const { data, error } = await db.rpc(
+          "submit_material_return",
+          {
+            p_request_uuid:
+              selectedMaterial.request_uuid,
+
+            p_material_id:
+              selectedMaterial.material_id,
+
+            p_return_qty: qty,
+            p_reason: reason,
+
+            p_condition:
+              el("condition").value,
+
+            p_remarks:
+              el("remarks").value.trim()
+          }
+        );
+
+        if (error) throw error;
+
+        showMessage(
+          `Material return submitted successfully. ID: ${data}`
+        );
+
+        el("returnForm").reset();
+
+        await loadReturnableMaterials();
+        await loadReturnHistory();
+
+      } catch (error) {
+        showMessage(
+          "Unable to submit: " + error.message,
+          true
+        );
+
+      } finally {
+        button.disabled = !selectedMaterial;
+      }
+    }
+  );
+
+  // 6. LOAD RETURN HISTORY
+
+  async function loadReturnHistory() {
+    const { data, error } = await db
+      .from("material_returns")
+      .select("return_no, submitted_at, status")
+      .order("submitted_at", {
+        ascending: false
+      });
+
+    if (error) {
+      showTableMessage(
+        "Cannot load returns: " + error.message
+      );
+      return;
+    }
+
+    if (!data?.length) {
+      showTableMessage("No material returns yet.");
+      return;
+    }
+
+    const tbody = el("returnRows");
+    tbody.replaceChildren();
+
+    for (const record of data) {
+      const tr = document.createElement("tr");
+
+      const values = [
+        record.return_no,
+        new Date(
+          record.submitted_at
+        ).toLocaleString(),
+        record.status
+      ];
+
+      values.forEach(value => {
+        const td = document.createElement("td");
+        td.textContent = value ?? "";
+
+        if (value === "Pending") {
+          td.className = "status";
+        }
+
+        tr.appendChild(td);
+      });
+
+      tbody.appendChild(tr);
+    }
+  }
+
+  // 7. INITIAL LOAD
+
+  await loadReturnHistory();
+
+  if (role === "Production") {
+    await loadReturnableMaterials();
+  }
+
+  console.log(
+    "DPR Material Return loaded. Role:",
+    role
+  );
 });
 </script>
+
 </body>
 </html>
