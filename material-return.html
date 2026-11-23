@@ -1384,5 +1384,127 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 </script>
 
+<!-- MATERIAL RETURN SIDEBAR ICON FIX -->
+
+<style>
+.side-menu a {
+  display: flex !important;
+  align-items: center;
+  gap: 13px;
+  min-height: 46px;
+}
+
+.side-menu a[hidden] {
+  display: none !important;
+}
+
+.side-menu a > svg {
+  display: block !important;
+  width: 19px !important;
+  height: 19px !important;
+  min-width: 19px !important;
+  max-width: 19px !important;
+  min-height: 19px !important;
+  max-height: 19px !important;
+  flex-shrink: 0 !important;
+  fill: none !important;
+  stroke: currentColor !important;
+  stroke-width: 1.8 !important;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.side-menu a > svg * {
+  fill: none !important;
+  stroke: currentColor !important;
+}
+</style>
+
+<script>
+(function () {
+  const icons = {
+    dashboard: `
+      <rect x="3" y="3" width="7" height="7" rx="1"/>
+      <rect x="14" y="3" width="7" height="7" rx="1"/>
+      <rect x="3" y="14" width="7" height="7" rx="1"/>
+      <rect x="14" y="14" width="7" height="7" rx="1"/>
+    `,
+
+    approval: `
+      <rect x="5" y="4" width="14" height="17" rx="2"/>
+      <path d="M9 4h6"/>
+      <path d="m9 13 2 2 4-4"/>
+    `,
+
+    issuing: `
+      <path d="m3 7 9-4 9 4-9 4z"/>
+      <path d="M3 7v10l9 4 9-4V7"/>
+      <path d="M12 11v10"/>
+      <path d="m16 15 2 2 3-3"/>
+    `,
+
+    receipt: `
+      <rect x="3" y="5" width="18" height="14" rx="2"/>
+      <path d="m3 7 9 6 9-6"/>
+    `,
+
+    employees: `
+      <circle cx="9" cy="8" r="3"/>
+      <path d="M3 20v-2a6 6 0 0 1 12 0v2"/>
+      <path d="M17 5a3 3 0 0 1 0 6"/>
+      <path d="M18 14a5 5 0 0 1 3 5"/>
+    `,
+
+    returns: `
+      <path d="M3 7v6h6"/>
+      <path d="M3 13a9 9 0 1 0 3-7"/>
+      <path d="m3 7 3-3"/>
+    `
+  };
+
+  const menu = document.querySelector(".side-menu");
+
+  if (!menu) return;
+
+  menu.querySelectorAll("a").forEach(link => {
+    const href = link.getAttribute("href") || "";
+
+    let type = "";
+
+    if (href.includes("material-return.html")) {
+      type = "returns";
+    } else if (href.includes("employees.html")) {
+      type = "employees";
+    } else if (href.includes("receipt.html")) {
+      type = "receipt";
+    } else if (href.includes("issuing.html")) {
+      type = "issuing";
+    } else if (href.includes("logistic.html")) {
+      type = "approval";
+    } else if (href.includes("index.html")) {
+      type = "dashboard";
+    }
+
+    if (!type) return;
+
+    // Remove previous icons to avoid duplicates
+    link.querySelectorAll("svg").forEach(svg => {
+      svg.remove();
+    });
+
+    const svg = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "svg"
+    );
+
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("aria-hidden", "true");
+    svg.innerHTML = icons[type];
+
+    link.prepend(svg);
+  });
+})();
+</script>
+
 </body>
 </html>
