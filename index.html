@@ -854,5 +854,142 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 
+<!-- ========================================
+     DASHBOARD NAVIGATION V7
+     PRODUCTION RECEIVING
+========================================= -->
+
+<style>
+  #productionReceivingNav {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 46px;
+    padding: 13px;
+    border-radius: 9px;
+    color: #cbd5e1;
+    text-decoration: none;
+    font-size: 14px;
+  }
+
+  #productionReceivingNav:hover {
+    background: #1b2b40;
+    color: #5eead4;
+  }
+
+  #productionReceivingNav svg {
+    display: block;
+    width: 19px !important;
+    height: 19px !important;
+    min-width: 19px !important;
+    flex-shrink: 0;
+    fill: none !important;
+    stroke: currentColor !important;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+</style>
+
+<script>
+(function () {
+  "use strict";
+
+  function addReceivingNavigation() {
+    const welcome =
+      document.getElementById("welcomeMessage");
+
+    const signedInText =
+      welcome?.textContent ||
+      document.body.innerText.slice(0, 500);
+
+    // Allow only Production and Logistic.
+    const allowed =
+      /\((Production|Logistic)\)/i.test(signedInText);
+
+    const existing =
+      document.getElementById("productionReceivingNav");
+
+    if (!allowed) {
+      if (existing) existing.remove();
+      return;
+    }
+
+    if (existing) return;
+
+    const sidebar =
+      document.querySelector(
+        "#mainNav .sidebar-nav"
+      ) ||
+      document.getElementById("mainNav");
+
+    if (!sidebar) return;
+
+    const link = document.createElement("a");
+
+    link.id = "productionReceivingNav";
+    link.href = "receiving.html";
+
+    const svg = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "svg"
+    );
+
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("aria-hidden", "true");
+
+    svg.innerHTML = `
+      <path d="m3 7 9-4 9 4-9 4-9-4z"/>
+      <path d="M3 7v10l9 4 9-4V7"/>
+      <path d="M12 11v10"/>
+      <path d="m8 16 3 3 5-6"/>
+    `;
+
+    const label = document.createElement("span");
+    label.textContent = "Production Receiving";
+
+    link.append(svg, label);
+
+    const historyLink =
+      sidebar.querySelector('a[href="#history"]');
+
+    const employeeLink =
+      sidebar.querySelector('a[href="employees.html"]');
+
+    if (historyLink) {
+      historyLink.insertAdjacentElement(
+        "afterend",
+        link
+      );
+    } else if (employeeLink) {
+      employeeLink.before(link);
+    } else {
+      sidebar.appendChild(link);
+    }
+  }
+
+  // Wait for the existing dashboard authentication
+  // and role display to finish loading.
+  let checks = 0;
+
+  const navigationCheck = setInterval(() => {
+    checks++;
+    addReceivingNavigation();
+
+    if (
+      document.getElementById(
+        "productionReceivingNav"
+      ) ||
+      checks >= 40
+    ) {
+      clearInterval(navigationCheck);
+    }
+  }, 250);
+
+})();
+</script>
+
+<!-- END DASHBOARD NAVIGATION V7 -->
+
 </body>
 </html>
