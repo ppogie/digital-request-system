@@ -1,16 +1,19 @@
 
 /*
-  DIGITAL PRODUCTION REQUEST SYSTEM
-  DASHBOARD V4
-  Staff | Logistic | Production
+ DIGITAL PRODUCTION REQUEST SYSTEM
+ DASHBOARD V5 - COMPLETE REPLACEMENT
+
+ Staff | Logistic | Production
+ Supabase + Dashboard + Request History
+ Employee Management + Material Return
 */
 
 document.addEventListener("DOMContentLoaded", async () => {
   "use strict";
 
-  // ==============================
+  // =====================================
   // 1. SUPABASE CONFIGURATION
-  // ==============================
+  // =====================================
 
   const SUPABASE_URL =
     "https://swyzpswrncaghdfnphhc.supabase.co";
@@ -18,27 +21,27 @@ document.addEventListener("DOMContentLoaded", async () => {
   const SUPABASE_KEY =
     "sb_publishable_Rek9NATddqXIwNN0UQ6cUw_Iuh5aRoE";
 
-  const $ = id => document.getElementById(id);
+  const el = id => document.getElementById(id);
 
-  const notice = $("authNotice");
-  const navigation = $("mainNav");
-  const main = $("appMain");
-  const form = $("requestForm");
-  const submitButton = $("submitRequest");
-  const feedback = $("requestFeedback");
-  const requestList = $("requestList");
-  const logoutButton = $("logoutButton");
+  const notice = el("authNotice");
+  const navigation = el("mainNav");
+  const main = el("appMain");
+  const form = el("requestForm");
+  const submitButton = el("submitRequest");
+  const feedback = el("requestFeedback");
+  const requestList = el("requestList");
+  const logoutButton = el("logoutButton");
 
-  let user = null;
-  let role = null;
+  let currentUser = null;
+  let role = "";
   let requests = [];
 
-  // ==============================
-  // 2. HELPER FUNCTIONS
-  // ==============================
+  // =====================================
+  // 2. HELPERS
+  // =====================================
 
-  function show(id, visible) {
-    const node = $(id);
+  function setVisible(id, visible) {
+    const node = el(id);
     if (!node) return;
 
     node.hidden = !visible;
@@ -50,30 +53,29 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  function showError(message) {
-    console.error(message);
+  function showError(text) {
+    console.error("DPR:", text);
 
     if (notice) {
       notice.replaceChildren();
 
-      const text = document.createElement("span");
-      text.textContent = message + " ";
-      notice.appendChild(text);
+      const message = document.createElement("p");
+      message.textContent = text;
 
       const link = document.createElement("a");
       link.href = "login.html";
       link.textContent = "Go to Login";
-      notice.appendChild(link);
 
+      notice.append(message, link);
       notice.hidden = false;
       notice.style.removeProperty("display");
     }
 
-    show("mainNav", false);
-    show("appMain", false);
+    setVisible("mainNav", false);
+    setVisible("appMain", false);
   }
 
-  function message(text, error = false) {
+  function setFeedback(text, error = false) {
     if (!feedback) return;
 
     feedback.textContent = text;
@@ -82,71 +84,77 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function setToday() {
-    const dateInput = $("requestDate");
-    if (!dateInput) return;
+    const input = el("requestDate");
+    if (!input) return;
 
     const now = new Date();
 
-    const y = now.getFullYear();
-    const m = String(
+    const year = now.getFullYear();
+    const month = String(
       now.getMonth() + 1
     ).padStart(2, "0");
 
-    const d = String(
+    const day = String(
       now.getDate()
     ).padStart(2, "0");
 
-    dateInput.value = `${y}-${m}-${d}`;
+    input.value = `${year}-${month}-${day}`;
   }
 
-  // ==============================
+  // =====================================
   // 3. SUPABASE CONNECTION
-  // ==============================
+  // =====================================
 
   if (!window.supabase?.createClient) {
     showError("Supabase library failed to load.");
     return;
   }
 
-  const db = window.dprClient ||
-    window.supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_KEY
-    );
-
-  window.dprClient = db;
-
-  // ==============================
-  // 4. AUTHENTICATION
-  // ==============================
+  let db;
 
   try {
-    const { data, error } =
+    db = window.dprClient ||
+      window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+      );
+
+    window.dprClient = db;
+
+  } catch (error) {
+    showError(error.message);
+    return;
+  }
+
+  // =====================================
+  // 4. LOGIN & ROLE
+  // =====================================
+
+  try {
+    const { data: auth, error: authError } =
       await db.auth.getUser();
 
-    if (error) throw error;
+    if (authError) throw authError;
 
-    if (!data?.user) {
-      location.replace("login.html");
+    if (!auth?.user) {
+      window.location.replace("login.html");
       return;
     }
 
-    user = data.user;
+    currentUser = auth.user;
 
-    const profileResult = await db
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
+    const { data: profile, error: profileError } =
+      await db.from("profiles")
+        .select("role")
+        .eq("id", currentUser.id)
+        .single();
 
-    if (profileResult.error) {
-      throw profileResult.error;
-    }
+    if (profileError) throw profileError;
 
-    role = profileResult.data?.role;
+    role = profile?.role;
 
     if (!["Staff", "Logistic", "Production"].includes(role)) {
-      throw new Error("Invalid account role.");
+      throw new Error("Unsupported account role.");
     }
 
   } catch (error) {
@@ -160,15 +168,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   const isLogistic = role === "Logistic";
   const isProduction = role === "Production";
 
-  // ==============================
-  // 5. ROLE-BASED NAVIGATION
-  // ==============================
+  // =====================================
+  // 5. ROLE-BASED MODULES
+  // =====================================
 
   [
     "staffNavLink",
     "staffQuickLink",
     "request"
-  ].forEach(id => show(id, isStaff));
+  ].forEach(id => setVisible(id, isStaff));
 
   [
     "logisticNavLink",
@@ -180,124 +188,28 @@ document.addEventListener("DOMContentLoaded", async () => {
     "logisticDashboardCard",
     "issuingDashboardCard",
     "receiptDashboardCard"
-  ].forEach(id => show(id, isLogistic));
+  ].forEach(id => setVisible(id, isLogistic));
 
-  const welcome = $("welcomeMessage");
+  const welcome = el("welcomeMessage");
 
   if (welcome) {
     welcome.textContent =
-      `Signed in as ${user.email} (${role})`;
+      `Signed in as ${currentUser.email} (${role})`;
   }
 
-  // ==============================
-  // 6. SHARED STYLING
-  // ==============================
-
-  const extraCSS = document.createElement("style");
-
-  extraCSS.textContent = `
-    #mainNav .dpr-nav-link {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 13px 15px;
-      min-height: 46px;
-      color: #cbd5e1;
-      text-decoration: none;
-      border-radius: 10px;
-      font-size: 14px;
-      border-left: 3px solid transparent;
-    }
-
-    #mainNav .dpr-nav-link:hover {
-      background: #243247;
-      color: #5eead4;
-    }
-
-    #mainNav .dpr-nav-link.active {
-      background: #164e4a;
-      color: #5eead4;
-      border-left-color: #2dd4bf;
-      font-weight: 600;
-    }
-
-    #mainNav .dpr-nav-link[hidden] {
-      display: none !important;
-    }
-
-    #mainNav svg.dpr-icon,
-    #logoutButton svg.dpr-icon {
-      width: 19px !important;
-      height: 19px !important;
-      min-width: 19px !important;
-      min-height: 19px !important;
-      max-width: 19px !important;
-      max-height: 19px !important;
-      flex-shrink: 0 !important;
-      fill: none !important;
-      stroke: currentColor !important;
-    }
-
-    #mainNav svg.dpr-icon *,
-    #logoutButton svg.dpr-icon * {
-      fill: none !important;
-      stroke: currentColor !important;
-    }
-
-    .dpr-extra-card {
-      display: flex !important;
-      flex-direction: column;
-      justify-content: center;
-      gap: 12px;
-      min-height: 145px;
-      padding: 22px;
-      background: #101b2d;
-      border: 1px solid #293548;
-      border-radius: 14px;
-      color: #f8fafc !important;
-      text-decoration: none !important;
-      font-size: 15px;
-      font-weight: 600;
-      transition: 0.2s ease;
-    }
-
-    .dpr-extra-card::before {
-      content: "";
-      width: 32px;
-      height: 4px;
-      border-radius: 4px;
-      background: #2dd4bf;
-    }
-
-    .dpr-extra-card:hover {
-      border-color: #2dd4bf;
-      background: #1b2b40;
-      transform: translateY(-3px);
-    }
-
-    .dpr-extra-card small {
-      font-size: 12px;
-      line-height: 1.5;
-      font-weight: normal;
-      color: #94a3b8;
-    }
-  `;
-
-  document.head.appendChild(extraCSS);
-
-  // ==============================
-  // 7. SIDEBAR MENUS
-  // ==============================
+  // =====================================
+  // 6. SIDEBAR
+  // =====================================
 
   const navArea =
     navigation?.querySelector(".sidebar-nav") ||
     navigation;
 
   function addMenu(id, label, href, afterId) {
-    if (!navArea) return null;
+    if (!navArea) return;
 
     let link =
-      $(id) ||
+      el(id) ||
       navArea.querySelector(`a[href="${href}"]`);
 
     if (!link) {
@@ -306,10 +218,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       link.href = href;
       link.textContent = label;
 
-      const afterNode = $(afterId);
+      const after = el(afterId);
 
-      if (afterNode && afterNode.parentElement === navArea) {
-        afterNode.after(link);
+      if (after?.parentElement === navArea) {
+        after.after(link);
       } else {
         navArea.appendChild(link);
       }
@@ -317,13 +229,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     link.hidden = false;
     link.style.removeProperty("display");
-
-    return link;
   }
 
   // EMPLOYEE MANAGEMENT
-  // Staff can view; Logistic can manage.
-  // Actual permissions remain controlled by RLS.
 
   if (isStaff || isLogistic) {
     addMenu(
@@ -333,13 +241,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       "receiptNavLink"
     );
   } else {
-    show("employeeNavLink", false);
+    setVisible("employeeNavLink", false);
   }
 
   // MATERIAL RETURN
-  // Production submits; Logistic reviews.
 
-  if (isProduction || isLogistic) {
+  if (isLogistic || isProduction) {
     addMenu(
       "returnNavLink",
       "Material Return",
@@ -347,12 +254,24 @@ document.addEventListener("DOMContentLoaded", async () => {
       "issuingNavLink"
     );
   } else {
-    show("returnNavLink", false);
+    setVisible("returnNavLink", false);
   }
 
-  // ==============================
-  // 8. SIDEBAR ICONS
-  // ==============================
+  // HIDE REQUEST HISTORY FOR PRODUCTION
+
+  if (isProduction && navArea) {
+    navArea.querySelectorAll('a[href="#history"]')
+      .forEach(link => {
+        link.hidden = true;
+        link.style.display = "none";
+      });
+
+    setVisible("history", false);
+  }
+
+  // =====================================
+  // 7. SIDEBAR ICONS
+  // =====================================
 
   const icons = {
     dashboard:
@@ -405,7 +324,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       "svg"
     );
 
-    svg.setAttribute("class", "dpr-icon");
     svg.setAttribute("viewBox", "0 0 24 24");
     svg.setAttribute("width", "19");
     svg.setAttribute("height", "19");
@@ -416,21 +334,34 @@ document.addEventListener("DOMContentLoaded", async () => {
     svg.setAttribute("stroke-linejoin", "round");
     svg.setAttribute("aria-hidden", "true");
 
+    svg.classList.add("dpr-icon");
     svg.innerHTML = icons[type];
+
+    svg.style.setProperty(
+      "width", "19px", "important"
+    );
+
+    svg.style.setProperty(
+      "height", "19px", "important"
+    );
+
+    svg.style.setProperty(
+      "flex-shrink", "0", "important"
+    );
+
+    svg.style.setProperty(
+      "fill", "none", "important"
+    );
 
     return svg;
   }
 
-  if (navArea) {
+  function decorateSidebar() {
+    if (!navArea) return;
+
     navArea.querySelectorAll("a").forEach(link => {
       const href =
-        (link.getAttribute("href") || "")
-          .toLowerCase();
-
-      const label =
-        (link.textContent || "")
-          .trim()
-          .toLowerCase();
+        (link.getAttribute("href") || "").toLowerCase();
 
       let type = null;
 
@@ -450,87 +381,155 @@ document.addEventListener("DOMContentLoaded", async () => {
         type = "request";
       } else if (href === "#dashboard") {
         type = "dashboard";
-      } else if (label.includes("employee")) {
-        type = "employees";
-      } else if (label.includes("return")) {
-        type = "return";
       }
 
       if (!type) return;
 
-      link.classList.add("dpr-nav-link");
-
-      // Remove previous decorative icons.
+      // Clear old decorative icons.
       link.querySelectorAll(
         "svg, i, .nav-icon, .menu-icon"
       ).forEach(node => node.remove());
 
       link.prepend(createIcon(type));
+
+      link.style.display =
+        link.hidden ? "none" : "flex";
+
+      link.style.alignItems = "center";
+      link.style.gap = "12px";
     });
   }
-   
-if (logoutButton) {
-  // Remove all existing logout SVG icons
-  logoutButton.querySelectorAll("svg").forEach(icon => {
-    icon.remove();
-  });
 
-  // Add one new logout icon
-  logoutButton.prepend(createIcon("logout"));
+  decorateSidebar();
 
-  logoutButton.style.display = "flex";
-  logoutButton.style.alignItems = "center";
-  logoutButton.style.justifyContent = "center";
-  logoutButton.style.gap = "10px";
-}
+  // =====================================
+  // 8. FIX DOUBLE LOGOUT ICON
+  // =====================================
 
+  if (logoutButton) {
+    // Remove old icons and duplicate labels.
+    logoutButton.replaceChildren();
 
-  // ==============================
-  // 9. QUICK ACCESS CARDS
-  // ==============================
-
-  function getQuickArea() {
-    const anchor =
-      $("receiptQuickLink") ||
-      $("issuingQuickLink") ||
-      $("approvalQuickLink") ||
-      $("staffQuickLink");
-
-    return anchor?.closest(
-      ".quick-links, .quick-access-grid, " +
-      ".quick-access, .quick-grid"
-    ) || document.querySelector(
-      "#dashboard .quick-links"
+    // Add exactly one icon.
+    logoutButton.appendChild(
+      createIcon("logout")
     );
+
+    // Add exactly one label.
+    const label = document.createElement("span");
+    label.textContent = "Logout";
+
+    logoutButton.appendChild(label);
+
+    logoutButton.style.display = "flex";
+    logoutButton.style.alignItems = "center";
+    logoutButton.style.justifyContent = "center";
+    logoutButton.style.gap = "10px";
   }
 
-  function addQuickCard(id, title, description, href) {
-    const area = getQuickArea();
-    if (!area) return;
+  // =====================================
+  // 9. QUICK ACCESS
+  // =====================================
 
-    let card = $(id);
+  const quickArea =
+    el("receiptQuickLink")?.closest(
+      ".quick-links, .quick-access-grid, .quick-grid"
+    ) ||
+    el("approvalQuickLink")?.closest(
+      ".quick-links, .quick-access-grid, .quick-grid"
+    ) ||
+    el("staffQuickLink")?.closest(
+      ".quick-links, .quick-access-grid, .quick-grid"
+    ) ||
+    document.querySelector("#dashboard .quick-links");
+
+  const quickCSS = document.createElement("style");
+
+  quickCSS.textContent = `
+    .dpr-extra-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 12px;
+      padding: 22px;
+      min-height: 145px;
+      border-radius: 14px;
+      background: #101b2d;
+      border: 1px solid #293548;
+      text-decoration: none;
+      color: #f8fafc !important;
+      font-weight: 600;
+      transition: 0.2s;
+    }
+
+    .dpr-extra-card::before {
+      content: "";
+      width: 32px;
+      height: 4px;
+      border-radius: 4px;
+      background: #2dd4bf;
+    }
+
+    .dpr-extra-card small {
+      font-size: 12px;
+      color: #94a3b8;
+      font-weight: normal;
+      line-height: 1.5;
+    }
+
+    .dpr-extra-card:hover {
+      border-color: #2dd4bf;
+      background: #1b2b40;
+      transform: translateY(-3px);
+    }
+
+    #mainNav svg.dpr-icon,
+    #logoutButton svg.dpr-icon {
+      width: 19px !important;
+      height: 19px !important;
+      min-width: 19px !important;
+      max-width: 19px !important;
+      min-height: 19px !important;
+      max-height: 19px !important;
+      flex-shrink: 0 !important;
+      fill: none !important;
+      stroke: currentColor !important;
+    }
+
+    #mainNav svg.dpr-icon *,
+    #logoutButton svg.dpr-icon * {
+      fill: none !important;
+      stroke: currentColor !important;
+    }
+  `;
+
+  document.head.appendChild(quickCSS);
+
+  function addQuickCard(id, title, description, href) {
+    if (!quickArea) return;
+
+    let card = el(id);
 
     if (!card) {
       card = document.createElement("a");
       card.id = id;
-      area.appendChild(card);
+      quickArea.appendChild(card);
     }
 
     card.href = href;
     card.classList.add("dpr-extra-card");
-
     card.replaceChildren();
 
     const titleNode = document.createElement("strong");
     titleNode.textContent = title;
 
-    const descNode = document.createElement("small");
-    descNode.textContent = description;
+    const descriptionNode =
+      document.createElement("small");
 
-    card.append(titleNode, descNode);
+    descriptionNode.textContent = description;
 
+    card.append(titleNode, descriptionNode);
     card.hidden = false;
-    card.style.removeProperty("display");
   }
 
   if (isLogistic) {
@@ -547,15 +546,15 @@ if (logoutButton) {
       "returnQuickLink",
       "Material Return",
       isProduction
-        ? "Submit raw material returns."
-        : "Review Production material returns.",
+        ? "Submit production material returns."
+        : "Review and verify material returns.",
       "material-return.html"
     );
   }
 
-  // ==============================
+  // =====================================
   // 10. ACTIVE SIDEBAR
-  // ==============================
+  // =====================================
 
   function updateActiveMenu() {
     if (!navArea) return;
@@ -584,26 +583,26 @@ if (logoutButton) {
     updateActiveMenu
   );
 
-  // ==============================
+  // =====================================
   // 11. SHOW DASHBOARD
-  // ==============================
+  // =====================================
 
   if (notice) {
     notice.hidden = true;
     notice.style.display = "none";
   }
 
-  show("mainNav", true);
-  show("appMain", true);
+  setVisible("mainNav", true);
+  setVisible("appMain", true);
 
   document.body.style.visibility = "visible";
 
-  // ==============================
+  // =====================================
   // 12. REQUEST HISTORY
-  // ==============================
+  // =====================================
 
-  const searchInput = $("requestSearch");
-  const statusFilter = $("requestStatusFilter");
+  const searchInput = el("requestSearch");
+  const statusFilter = el("requestStatusFilter");
 
   function renderRequests(rows) {
     if (!requestList) return;
@@ -611,9 +610,9 @@ if (logoutButton) {
     requestList.replaceChildren();
 
     if (!rows.length) {
-      const empty = document.createElement("p");
-      empty.textContent = "No requests found.";
-      requestList.appendChild(empty);
+      const p = document.createElement("p");
+      p.textContent = "No requests found.";
+      requestList.appendChild(p);
       return;
     }
 
@@ -623,8 +622,8 @@ if (logoutButton) {
     const table = document.createElement("table");
     table.className = "request-table";
 
-    const head = document.createElement("thead");
-    const heading = document.createElement("tr");
+    const thead = document.createElement("thead");
+    const headRow = document.createElement("tr");
 
     [
       "Request ID",
@@ -636,13 +635,13 @@ if (logoutButton) {
     ].forEach(text => {
       const th = document.createElement("th");
       th.textContent = text;
-      heading.appendChild(th);
+      headRow.appendChild(th);
     });
 
-    head.appendChild(heading);
-    table.appendChild(head);
+    thead.appendChild(headRow);
+    table.appendChild(thead);
 
-    const body = document.createElement("tbody");
+    const tbody = document.createElement("tbody");
 
     rows.forEach(request => {
       const tr = document.createElement("tr");
@@ -670,25 +669,24 @@ if (logoutButton) {
 
       td.appendChild(badge);
       tr.appendChild(td);
-      body.appendChild(tr);
+
+      tbody.appendChild(tr);
     });
 
-    table.appendChild(body);
+    table.appendChild(tbody);
     wrapper.appendChild(table);
     requestList.appendChild(wrapper);
   }
 
   function filterRequests() {
     const keyword =
-      (searchInput?.value || "")
-        .trim()
-        .toLowerCase();
+      (searchInput?.value || "").trim().toLowerCase();
 
     const status =
       statusFilter?.value || "All";
 
     const filtered = requests.filter(r => {
-      const textMatch = [
+      const matchesText = [
         r.request_id,
         r.staff_id,
         r.product_model
@@ -698,46 +696,59 @@ if (logoutButton) {
           .includes(keyword)
       );
 
-      const statusMatch =
+      const matchesStatus =
         status === "All" || r.status === status;
 
-      return textMatch && statusMatch;
+      return matchesText && matchesStatus;
     });
 
     renderRequests(filtered);
   }
 
   searchInput?.addEventListener(
-    "input",
-    filterRequests
+    "input", filterRequests
   );
 
   statusFilter?.addEventListener(
-    "change",
-    filterRequests
+    "change", filterRequests
   );
 
-  // ==============================
-  // 13. LOAD REQUESTS
-  // ==============================
+  // =====================================
+  // 13. LOAD REQUESTS & STATISTICS
+  // =====================================
 
   async function loadRequests() {
+    if (isProduction) {
+      // Production return data lives in its own module.
+      ["pendingCount", "approvedCount", "rejectedCount"]
+        .forEach(id => {
+          if (el(id)) el(id).textContent = "—";
+        });
+
+      return;
+    }
+
     if (requestList) {
       requestList.textContent = "Loading requests...";
     }
 
     try {
-      let query = db
-        .from("requests")
+      let query = db.from("requests")
         .select(
           "request_id,request_date,requested_by," +
-          "staff_id,product_model," +
-          "production_quantity,status,created_at"
+          "staff_id,product_model,production_quantity," +
+          "status,created_at"
         )
-        .order("created_at", { ascending: false });
+        .order("created_at", {
+          ascending: false
+        });
 
+      // Staff only sees their own requests.
       if (isStaff) {
-        query = query.eq("requested_by", user.id);
+        query = query.eq(
+          "requested_by",
+          currentUser.id
+        );
       }
 
       const { data, error } = await query;
@@ -746,39 +757,43 @@ if (logoutButton) {
 
       requests = data || [];
 
-      for (const status of [
-        "Pending",
-        "Approved",
-        "Rejected"
-      ]) {
-        const counter =
-          $(status.toLowerCase() + "Count");
+      ["Pending", "Approved", "Rejected"]
+        .forEach(status => {
+          const count = el(
+            status.toLowerCase() + "Count"
+          );
 
-        if (counter) {
-          counter.textContent = String(
-            requests.filter(r =>
-              r.status === status
+          if (!count) return;
+
+          count.textContent = String(
+            requests.filter(
+              r => r.status === status
             ).length
           );
-        }
-      }
+        });
 
       filterRequests();
 
     } catch (error) {
-      console.error(error);
+      console.error(
+        "Cannot load requests:", error
+      );
+
+      ["pendingCount", "approvedCount", "rejectedCount"]
+        .forEach(id => {
+          if (el(id)) el(id).textContent = "—";
+        });
 
       if (requestList) {
         requestList.textContent =
-          "Unable to load requests: " +
-          error.message;
+          "Cannot load requests: " + error.message;
       }
     }
   }
 
-  // ==============================
-  // 14. CREATE REQUEST
-  // ==============================
+  // =====================================
+  // 14. CREATE REQUEST - STAFF
+  // =====================================
 
   if (isStaff && form && submitButton) {
     setToday();
@@ -786,92 +801,91 @@ if (logoutButton) {
     submitButton.disabled = false;
     submitButton.type = "submit";
 
-    form.addEventListener(
-      "submit",
-      async event => {
-        event.preventDefault();
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
 
-        if (submitButton.disabled) return;
-        if (!form.reportValidity()) return;
+      if (submitButton.disabled) return;
+      if (!form.reportValidity()) return;
 
-        const requestId =
-          $("requestId")?.value.trim() || "";
+      const requestId =
+        el("requestId")?.value.trim() || "";
 
-        const requestDate =
-          $("requestDate")?.value || "";
+      const requestDate =
+        el("requestDate")?.value || "";
 
-        const staffId =
-          $("staffId")?.value.trim() || "";
+      const staffId =
+        el("staffId")?.value.trim() || "";
 
-        const productModel =
-          $("productModel")?.value.trim() || "";
+      const productModel =
+        el("productModel")?.value.trim() || "";
 
-        const qty = Number(
-          $("productionQuantity")?.value
+      const qty = Number(
+        el("productionQuantity")?.value
+      );
+
+      const remarks =
+        el("remarks")?.value.trim() || "";
+
+      if (
+        !requestId ||
+        !requestDate ||
+        !staffId ||
+        !productModel ||
+        !Number.isSafeInteger(qty) ||
+        qty < 1
+      ) {
+        setFeedback(
+          "Please complete all required fields.",
+          true
+        );
+        return;
+      }
+
+      submitButton.disabled = true;
+      setFeedback("Submitting request...");
+
+      try {
+        const { error } = await db
+          .from("requests")
+          .insert({
+            request_id: requestId,
+            request_date: requestDate,
+            requested_by: currentUser.id,
+            staff_id: staffId,
+            product_model: productModel,
+            production_quantity: qty,
+            remarks: remarks,
+            status: "Pending"
+          });
+
+        if (error) throw error;
+
+        form.reset();
+        setToday();
+
+        setFeedback(
+          "Request submitted successfully!"
         );
 
-        const remarks =
-          $("remarks")?.value.trim() || "";
+        await loadRequests();
 
-        if (
-          !requestId ||
-          !requestDate ||
-          !staffId ||
-          !productModel ||
-          !Number.isSafeInteger(qty) ||
-          qty <= 0
-        ) {
-          message(
-            "Please complete all required fields.",
-            true
-          );
-          return;
-        }
+      } catch (error) {
+        setFeedback(
+          error.code === "23505"
+            ? "Request ID already exists."
+            : "Unable to submit: " + error.message,
+          true
+        );
 
-        submitButton.disabled = true;
-        message("Submitting request...");
-
-        try {
-          const { error } = await db
-            .from("requests")
-            .insert({
-              request_id: requestId,
-              request_date: requestDate,
-              requested_by: user.id,
-              staff_id: staffId,
-              product_model: productModel,
-              production_quantity: qty,
-              remarks,
-              status: "Pending"
-            });
-
-          if (error) throw error;
-
-          form.reset();
-          setToday();
-
-          message("Request submitted successfully!");
-
-          await loadRequests();
-
-        } catch (error) {
-          message(
-            error.code === "23505"
-              ? "Request ID already exists."
-              : "Unable to submit: " + error.message,
-            true
-          );
-
-        } finally {
-          submitButton.disabled = false;
-        }
+      } finally {
+        submitButton.disabled = false;
       }
-    );
+    });
   }
 
-  // ==============================
+  // =====================================
   // 15. LOGOUT
-  // ==============================
+  // =====================================
 
   logoutButton?.addEventListener(
     "click",
@@ -883,7 +897,7 @@ if (logoutButton) {
 
         if (error) throw error;
 
-        location.replace("login.html");
+        window.location.replace("login.html");
 
       } catch (error) {
         logoutButton.disabled = false;
@@ -895,14 +909,14 @@ if (logoutButton) {
     }
   );
 
-  // ==============================
+  // =====================================
   // 16. INITIAL LOAD
-  // ==============================
+  // =====================================
 
   await loadRequests();
 
   console.log(
-    "DPR DASHBOARD V4 LOADED - ROLE:",
+    "DPR DASHBOARD V5 LOADED - ROLE:",
     role
   );
 });
