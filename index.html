@@ -1,995 +1,607 @@
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
-
   <meta name="viewport"
-        content="width=device-width, initial-scale=1.0">
-
+        content="width=device-width, initial-scale=1">
   <title>Digital Production Request System</title>
 
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="dpr-theme.css">
 
   <style>
-    /* Prevent hidden elements from appearing */
     [hidden] {
       display: none !important;
     }
+
+    :root {
+      --dpr-bg: #0b1220;
+      --dpr-panel: #151f32;
+      --dpr-input: #101b2d;
+      --dpr-border: #293548;
+      --dpr-muted: #94a3b8;
+      --dpr-teal: #2dd4bf;
+    }
+
+    body {
+      background: var(--dpr-bg);
+      color: #f8fafc;
+    }
+
+    #mainNav.sidebar {
+      width: 245px !important;
+      flex: 0 0 245px !important;
+      padding: 20px 14px !important;
+    }
+
+    #mainNav .brand h2 {
+      font-size: 18px !important;
+      line-height: 1.35;
+      color: #f8fafc;
+    }
+
+    #mainNav .brand p {
+      font-size: 12px;
+      color: var(--dpr-muted);
+    }
+
+    #mainNav .sidebar-nav {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 6px;
+    }
+
+    #mainNav .sidebar-nav a {
+      display: flex !important;
+      align-items: center !important;
+      flex-direction: row !important;
+      gap: 12px !important;
+      min-height: 44px;
+      padding: 11px 13px;
+      border-radius: 10px;
+      color: #cbd5e1;
+      text-decoration: none;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    #mainNav .sidebar-nav a.active {
+      background: #164e4a !important;
+      color: #5eead4 !important;
+      border-left: 3px solid var(--dpr-teal);
+    }
+
+    #mainNav .sidebar-nav a:hover {
+      background: #243247;
+      color: #5eead4;
+    }
+
+    .dpr-icon {
+      display: block !important;
+      width: 19px !important;
+      height: 19px !important;
+      min-width: 19px !important;
+      max-width: 19px !important;
+      flex: 0 0 19px !important;
+      fill: none !important;
+      stroke: currentColor !important;
+      stroke-width: 1.8 !important;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .dpr-icon * {
+      fill: none !important;
+      stroke: currentColor !important;
+    }
+
+    #logoutButton {
+      display: flex !important;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .dpr-stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 20px;
+      margin: 24px 0 28px;
+    }
+
+    .dpr-stat {
+      min-height: 145px;
+      background: #172339;
+      border: 1px solid var(--dpr-border);
+      border-left: 4px solid var(--accent, #2dd4bf);
+      border-radius: 15px;
+      padding: 22px;
+    }
+
+    .dpr-stat .label {
+      display: block;
+      color: #a8b5c8;
+      font-size: 13px;
+      margin-bottom: 23px;
+    }
+
+    .dpr-stat .number {
+      font-size: 35px;
+      font-weight: 700;
+      line-height: 1.1;
+      color: #f8fafc;
+    }
+
+    .dpr-status-note {
+      color: #94a3b8;
+      font-size: 12px;
+      line-height: 1.6;
+      margin: 12px 0 0;
+    }
+
+    .dpr-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .dpr-card {
+      display: flex !important;
+      flex-direction: column;
+      justify-content: center;
+      gap: 12px;
+      min-height: 145px;
+      padding: 22px;
+      background: var(--dpr-input);
+      border: 1px solid var(--dpr-border);
+      border-radius: 13px;
+      color: #f8fafc !important;
+      text-decoration: none !important;
+    }
+
+    .dpr-card:before {
+      content: "";
+      width: 33px;
+      height: 4px;
+      border-radius: 4px;
+      background: var(--dpr-teal);
+    }
+
+    .dpr-card strong {
+      font-size: 15px;
+      color: #f8fafc;
+    }
+
+    .dpr-card small {
+      font-size: 12px;
+      font-weight: normal;
+      line-height: 1.6;
+      color: var(--dpr-muted);
+    }
+
+    .dpr-card:hover {
+      background: #1b2b40;
+      border-color: var(--dpr-teal);
+    }
+
+    .dpr-history-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--dpr-border);
+      border-radius: 12px;
+      margin-top: 16px;
+    }
+
+    .dpr-history-table {
+      width: 100%;
+      min-width: 690px;
+      border-collapse: collapse;
+    }
+
+    .dpr-history-table th {
+      background: #233249;
+      color: #e2e8f0;
+      padding: 15px;
+      text-align: left;
+      font-size: 13px;
+    }
+
+    .dpr-history-table td {
+      padding: 15px;
+      border-top: 1px solid var(--dpr-border);
+      font-size: 13px;
+      color: #cbd5e1;
+    }
+
+    .dpr-pill {
+      display: inline-block;
+      padding: 6px 11px;
+      border-radius: 25px;
+      font-size: 12px;
+    }
+
+    .dpr-pill.pending {
+      background: #594518;
+      color: #fbbf24;
+    }
+
+    .dpr-pill.approved {
+      background: #164e4a;
+      color: #5eead4;
+    }
+
+    .dpr-pill.rejected {
+      background: #512233;
+      color: #fda4af;
+    }
+
+    .dpr-alert {
+      margin: 16px 0;
+      padding: 13px 16px;
+      border-radius: 9px;
+      background: #142b3a;
+      border: 1px solid #28536a;
+      color: #93c5fd;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .dpr-alert.error {
+      background: #451d2b;
+      border-color: #7f1d1d;
+      color: #fda4af;
+    }
+
+    .history-toolbar {
+      display: flex;
+      gap: 12px;
+      margin: 16px 0;
+    }
+
+    .history-toolbar input {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .history-toolbar select {
+      min-width: 170px;
+    }
+
+    #requestFeedback {
+      margin-top: 12px;
+      font-size: 13px;
+    }
+
+    @media (max-width: 1050px) {
+      .dpr-stats,
+      .dpr-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 768px) {
+      #mainNav.sidebar {
+        width: 100% !important;
+        flex: none !important;
+      }
+
+      #mainNav .sidebar-nav {
+        flex-direction: row !important;
+        flex-wrap: wrap;
+      }
+
+      .dpr-stats,
+      .dpr-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .history-toolbar {
+        flex-direction: column;
+      }
+
+      .history-toolbar select {
+        width: 100%;
+      }
+    }
   </style>
-  
-<style>
-/* FIX SIDEBAR DESIGN */
-
-#mainNav.sidebar {
-  width: 245px !important;
-  flex: 0 0 245px !important;
-  padding: 20px 14px !important;
-}
-
-#mainNav .brand h2 {
-  font-size: 18px !important;
-  line-height: 1.3 !important;
-  color: #f8fafc;
-}
-
-#mainNav .brand p {
-  font-size: 12px !important;
-  color: #94a3b8;
-}
-
-/* FIX MENU ARRANGEMENT */
-
-#mainNav .sidebar-nav {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 6px !important;
-}
-
-#mainNav .sidebar-nav a {
-  display: flex !important;
-  align-items: center !important;
-  flex-direction: row !important;
-  justify-content: flex-start !important;
-  gap: 12px !important;
-
-  min-height: 44px !important;
-  padding: 11px 13px !important;
-
-  border-radius: 10px !important;
-  color: #cbd5e1;
-  text-decoration: none;
-  font-size: 14px !important;
-  line-height: 1.3 !important;
-}
-
-/* FIX GIANT BLACK ICONS */
-
-#mainNav .sidebar-nav a > svg {
-  width: 20px !important;
-  height: 20px !important;
-  min-width: 20px !important;
-  min-height: 20px !important;
-  max-width: 20px !important;
-  max-height: 20px !important;
-
-  flex: 0 0 20px !important;
-  display: block !important;
-
-  fill: none !important;
-  stroke: currentColor !important;
-  stroke-width: 1.8 !important;
-  stroke-linecap: round !important;
-  stroke-linejoin: round !important;
-}
-
-#mainNav .sidebar-nav a > svg * {
-  fill: none !important;
-  stroke: currentColor !important;
-  stroke-width: 1.8 !important;
-}
-
-/* ACTIVE MENU */
-
-#mainNav .sidebar-nav a.active {
-  background: #164e4a !important;
-  color: #5eead4 !important;
-  border-left: 3px solid #2dd4bf !important;
-}
-
-#mainNav .sidebar-nav a:hover {
-  background: #243247 !important;
-  color: #5eead4 !important;
-}
-
-/* KEEP ROLE MENUS HIDDEN */
-
-#mainNav .sidebar-nav a[hidden] {
-  display: none !important;
-}
-
-/* MOBILE RESPONSIVE */
-
-@media (max-width: 768px) {
-  #mainNav.sidebar {
-    width: 100% !important;
-    flex: none !important;
-    height: auto !important;
-  }
-
-  #mainNav .sidebar-nav {
-    flex-direction: row !important;
-    flex-wrap: wrap !important;
-  }
-}
-</style>
-<link rel="icon" href="data:,">
-  
-<link rel="stylesheet" href="dpr-theme.css">
-
+  <link rel="icon" href="data:,">
 </head>
 
 <body>
-
 <div class="app-shell">
 
   <!-- SIDEBAR -->
-
   <aside class="sidebar" id="mainNav" hidden>
-
     <div>
-
       <div class="brand">
         <h2>Digital Production Request</h2>
         <p>Raw Material Request System</p>
       </div>
 
-     
-<nav class="sidebar-nav">
+      <nav class="sidebar-nav" id="sidebarMenu">
 
-  <a href="#dashboard" class="active">
-    <svg viewBox="0 0 24 24">
-      <rect x="3" y="3" width="7" height="7"/>
-      <rect x="14" y="3" width="7" height="7"/>
-      <rect x="3" y="14" width="7" height="7"/>
-      <rect x="14" y="14" width="7" height="7"/>
-    </svg>
-    Dashboard
-  </a>
+        <a href="#dashboard" data-role="all"
+           data-icon="dashboard" class="active">
+          Dashboard
+        </a>
 
-  <a href="#request" id="staffNavLink" hidden>
-    <svg viewBox="0 0 24 24">
-      <rect x="4" y="3" width="16" height="18" rx="2"/>
-      <path d="M8 8h8M8 12h4M14 15v6M11 18h6"/>
-    </svg>
-    Create Request
-  </a>
+        <a href="#request" data-role="Production"
+           data-icon="request">
+          Create Request
+        </a>
 
-  <a href="#history">
-    <svg viewBox="0 0 24 24">
-      <path d="M3 12a9 9 0 1 0 3-6.7"/>
-      <path d="M3 3v6h6M12 7v5l4 2"/>
-    </svg>
-    Request History
-  </a>
+        <a href="#history"
+           data-role="Production,Logistic"
+           data-icon="history">
+          Request History
+        </a>
 
-  <a href="logistic.html" id="logisticNavLink" hidden>
-    <svg viewBox="0 0 24 24">
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/>
-      <path d="m9 12 2 2 4-4"/>
-    </svg>
-    Logistic Approval
-  </a>
+        <a href="receiving.html"
+           data-role="Production,Logistic"
+           data-icon="receiving">
+          Production Receiving
+        </a>
 
-  <a href="issuing.html" id="issuingNavLink" hidden>
-    <svg viewBox="0 0 24 24">
-      <path d="m12 2 9 5-9 5-9-5 9-5Z"/>
-      <path d="M3 7v10l9 5 9-5V7M12 12v10"/>
-    </svg>
-    Material Issuing
-  </a>
+        <a href="logistic.html" data-role="Logistic"
+           data-icon="approval">
+          Logistic Approval
+        </a>
 
-  <a href="receipt.html" id="receiptNavLink" hidden>
-    <svg viewBox="0 0 24 24">
-      <rect x="3" y="5" width="18" height="14" rx="2"/>
-      <path d="m3 7 9 6 9-6"/>
-    </svg>
-    Email Receipt
-  </a>
+        <a href="issuing.html" data-role="Logistic"
+           data-icon="issuing">
+          Material Issuing
+        </a>
 
-<a href="material-return.html"
-   id="returnNavLink"
-   hidden>
-  ↩ Material Return
-</a>
+        <a href="receipt.html" data-role="Logistic"
+           data-icon="receipt">
+          Email Receipt
+        </a>
 
-</nav>
+        <a href="employees.html"
+           data-role="Production,Logistic"
+           data-icon="employees">
+          Employee Management
+        </a>
 
+        <a href="material-return.html"
+           data-role="Production,Logistic"
+           data-icon="return">
+          Material Return
+        </a>
+
+      </nav>
     </div>
 
     <div class="sidebar-footer">
-
-      <button
-        type="button"
-        id="logoutButton"
-        class="logout-btn">
+      <button id="logoutButton"
+              type="button"
+              class="logout-btn">
         Logout
       </button>
-
     </div>
-
   </aside>
 
-  <!-- MAIN AREA -->
-
   <div class="main-area">
-
-    <!-- TOP BAR -->
-
     <header class="topbar">
-
       <div>
         <h1>Digital Production Request</h1>
-
         <p id="welcomeMessage">
-          Production Management Dashboard
+          Checking account...
         </p>
       </div>
-
     </header>
 
-    <!-- AUTHENTICATION NOTICE -->
-
     <div id="authNotice" class="notice-card">
-
       Checking your login session...
-
-      <a href="login.html">
-        Go to Login
-      </a>
-
     </div>
 
-    <!-- MAIN DASHBOARD -->
-
-    <main id="appMain"
-          class="dashboard-content"
-          hidden>
+    <main id="appMain" class="dashboard-content" hidden>
 
       <!-- DASHBOARD OVERVIEW -->
-
       <section id="dashboard">
-
         <h2>Dashboard Overview</h2>
-
         <p>
-          Monitor and manage production
-          material requests.
+          Monitor and manage production material requests.
         </p>
 
-      </section>
+        <div class="dpr-stats">
+          <div class="dpr-stat" style="--accent:#fbbf24">
+            <span class="label">Pending Requests</span>
+            <div class="number" id="pendingCount">—</div>
+          </div>
 
-      <!-- STATISTICS -->
+          <div class="dpr-stat" style="--accent:#2dd4bf">
+            <span class="label">Approved Requests</span>
+            <div class="number" id="approvedCount">—</div>
+          </div>
 
-      <section class="stats-grid">
+          <div class="dpr-stat" style="--accent:#fb7185">
+            <span class="label">Rejected Requests</span>
+            <div class="number" id="rejectedCount">—</div>
+          </div>
 
-        <div class="stat-card">
+          <div class="dpr-stat" style="--accent:#60a5fa">
+            <span class="label">Receiving Records</span>
+            <div class="number" id="receivedCount">—</div>
+          </div>
 
-          <span class="stat-label">
-            Pending Requests
-          </span>
+          <div class="dpr-stat" style="--accent:#fbbf24">
+            <span class="label">Pending Material Returns</span>
+            <div class="number" id="returnPendingCount">—</div>
+          </div>
 
-          <h2 id="pendingCount">0</h2>
-
+          <div class="dpr-stat" style="--accent:#34d399">
+            <span class="label">Accepted Material Returns</span>
+            <div class="number" id="returnAcceptedCount">—</div>
+          </div>
         </div>
 
-        <div class="stat-card">
-
-          <span class="stat-label">
-            Approved Requests
-          </span>
-
-          <h2 id="approvedCount">0</h2>
-
-        </div>
-
-        <div class="stat-card">
-
-          <span class="stat-label">
-            Rejected Requests
-          </span>
-
-          <h2 id="rejectedCount">0</h2>
-
-        </div>
-
+        <p class="dpr-status-note" id="dashboardScope">
+          Loading data...
+        </p>
+        <div id="dashboardError" hidden></div>
       </section>
 
       <!-- QUICK ACCESS -->
-
       <section class="content-card">
-
         <div class="card-header">
-
           <h2>Quick Access</h2>
-
-          <p>
-            Access production request
-            management modules.
-          </p>
-
+          <p>Access production request management modules.</p>
         </div>
 
-        <div class="quick-grid">
-
-          <!-- STAFF -->
-
-          <a href="#request"
-             class="quick-card"
-             id="staffQuickLink"
-             hidden>
-
-            <h3>Create Request</h3>
-
-            <p>
-              Submit a new production
-              material request.
-            </p>
-
+        <div class="dpr-grid">
+          <a href="#request" class="dpr-card"
+             data-role="Production">
+            <strong>Create Request</strong>
+            <small>Submit a new production material request.</small>
           </a>
 
-          <!-- LOGISTIC APPROVAL -->
-
-          <a href="logistic.html"
-             class="quick-card"
-             id="approvalQuickLink"
-             hidden>
-
-            <h3>Logistic Approval</h3>
-
-            <p>
-              Review, approve or reject
-              production requests.
-            </p>
-
+          <a href="#history" class="dpr-card"
+             data-role="Production,Logistic">
+            <strong>Request History</strong>
+            <small>Track request status and previous records.</small>
           </a>
 
-          <!-- MATERIAL ISSUING -->
-
-          <a href="issuing.html"
-             class="quick-card"
-             id="issuingQuickLink"
-             hidden>
-
-            <h3>Material Issuing</h3>
-
-            <p>
-              Manage issued quantities
-              for approved requests.
-            </p>
-
+          <a href="receiving.html" class="dpr-card"
+             data-role="Production,Logistic">
+            <strong>Production Receiving</strong>
+            <small>Confirm materials received from Logistic.</small>
           </a>
 
-          <!-- EMAIL RECEIPT -->
-
-          <a href="receipt.html"
-             class="quick-card"
-             id="receiptQuickLink"
-             hidden>
-
-            <h3>Email Receipt</h3>
-
-            <p>
-              Send digital material
-              issuing receipts.
-            </p>
-
+          <a href="logistic.html" class="dpr-card"
+             data-role="Logistic">
+            <strong>Logistic Approval</strong>
+            <small>Approve or reject production requests.</small>
           </a>
 
+          <a href="issuing.html" class="dpr-card"
+             data-role="Logistic">
+            <strong>Material Issuing</strong>
+            <small>Issue materials for approved requests.</small>
+          </a>
+
+          <a href="receipt.html" class="dpr-card"
+             data-role="Logistic">
+            <strong>Email Receipt</strong>
+            <small>Manage digital issuing receipts.</small>
+          </a>
+
+          <a href="employees.html" class="dpr-card"
+             data-role="Production,Logistic">
+            <strong>Employee Management</strong>
+            <small>View or manage employee records.</small>
+          </a>
+
+          <a href="material-return.html" class="dpr-card"
+             data-role="Production,Logistic">
+            <strong>Material Return</strong>
+            <small>Submit or verify returned materials.</small>
+          </a>
         </div>
-
       </section>
 
-      <!-- CREATE PRODUCTION REQUEST -->
-
-      <section id="request"
-               class="content-card"
-               hidden>
-
+      <!-- CREATE REQUEST -->
+      <section id="request" class="content-card"
+               data-role="Production" hidden>
         <div class="card-header">
-
           <h2>Create Production Request</h2>
-
-          <p>
-            Fill in the details below
-            to request raw materials.
-          </p>
-
+          <p>Enter the details to request raw materials.</p>
         </div>
 
-        <form id="requestForm"
-              class="request-form">
-
+        <form id="requestForm" class="request-form">
           <div class="form-grid">
 
-            <!-- REQUEST ID -->
-
             <div class="form-group">
-
-              <label for="requestId">
-                Request ID
-              </label>
-
-              <input
-                type="text"
-                id="requestId"
-                placeholder="REQ001"
-                required>
-
+              <label for="requestId">Request ID</label>
+              <input id="requestId" type="text"
+                     placeholder="REQ-TEST-013" required>
             </div>
 
-            <!-- REQUEST DATE -->
-
             <div class="form-group">
-
-              <label for="requestDate">
-                Request Date
-              </label>
-
-              <input
-                type="date"
-                id="requestDate"
-                required>
-
+              <label for="requestDate">Request Date</label>
+              <input id="requestDate" type="date" required>
             </div>
 
-            <!-- STAFF ID -->
-
             <div class="form-group">
-
-              <label for="staffId">
-                Staff ID
-              </label>
-
-              <input
-                type="text"
-                id="staffId"
-                placeholder="Enter Staff ID"
-                required>
-
+              <label for="staffId">Staff ID</label>
+              <input id="staffId" type="text"
+                     placeholder="Enter Testing Staff ID"
+                     required>
             </div>
 
-            <!-- PRODUCT MODEL -->
-
             <div class="form-group">
-
-              <label for="productModel">
-                Product Model
-              </label>
-
-              <input
-                type="text"
-                id="productModel"
-                placeholder="Enter Product Model"
-                required>
-
+              <label for="productModel">Product Model</label>
+              <input id="productModel" type="text"
+                     placeholder="Enter Testing Product Model"
+                     required>
             </div>
 
-            <!-- PRODUCTION QUANTITY -->
-
             <div class="form-group">
-
               <label for="productionQuantity">
                 Production Quantity
               </label>
-
-              <input
-                type="number"
-                id="productionQuantity"
-                min="1"
-                step="1"
-                placeholder="Enter Quantity"
-                required>
-
+              <input id="productionQuantity" type="number"
+                     min="1" step="1" required>
             </div>
 
           </div>
 
-          <!-- REMARKS -->
-
           <div class="form-group">
-
-            <label for="remarks">
-              Remarks
-            </label>
-
-            <textarea
-              id="remarks"
-              rows="4"
-              placeholder="Enter remarks">
-            </textarea>
-
+            <label for="remarks">Remarks</label>
+            <textarea id="remarks" rows="4"
+                      placeholder="Enter remarks"></textarea>
           </div>
-
-          <!-- SUBMIT -->
 
           <div class="form-actions">
-
-            <button
-              type="submit"
-              id="submitRequest"
-              class="primary-btn"
-              disabled>
-
+            <button id="submitRequest" type="submit"
+                    class="primary-btn" disabled>
               Submit Request
-
             </button>
-
           </div>
 
-          <p id="requestFeedback"
-             role="status"></p>
-
+          <p id="requestFeedback" role="status"></p>
         </form>
-
       </section>
 
       <!-- REQUEST HISTORY -->
-
-      <section id="history"
-               class="content-card">
-
+      <section id="history" class="content-card"
+               data-role="Production,Logistic" hidden>
         <div class="card-header">
-
           <h2>Request History</h2>
-
-          <p>
-            View and track production
-            request records.
-          </p>
-
+          <p>View and track production request records.</p>
         </div>
 
-<!-- REQUEST HISTORY FILTERS -->
+        <div class="history-toolbar">
+          <input id="requestSearch" type="search"
+                 placeholder="Search Request ID, Staff ID or Model...">
+          <select id="requestStatusFilter">
+            <option value="All">All Status</option>
+            <option value="Pending">Pending</option>
+            <option value="Approved">Approved</option>
+            <option value="Rejected">Rejected</option>
+          </select>
+        </div>
 
-<div class="history-toolbar">
-
-  <input
-    type="search"
-    id="requestSearch"
-    placeholder="Search Request ID, Staff ID or Model..."
-    aria-label="Search production requests">
-
-  <select id="requestStatusFilter"
-          aria-label="Filter by request status">
-
-    <option value="All">All Status</option>
-    <option value="Pending">Pending</option>
-    <option value="Approved">Approved</option>
-    <option value="Rejected">Rejected</option>
-
-  </select>
-
-</div>
-
-        <div id="requestList"></div>
-
+        <div id="requestList">Loading requests...</div>
       </section>
 
-      <!-- LOGISTIC APPROVAL CARD -->
-
-      <section
-        id="logisticDashboardCard"
-        class="content-card"
-        hidden>
-
-        <div class="card-header">
-
-          <h2>Logistic Approval</h2>
-
-          <p>
-            Manage production request
-            approvals submitted by Staff.
-          </p>
-
-        </div>
-
-        <a href="logistic.html"
-           class="primary-btn inline-btn">
-
-          Open Logistic Approval
-
-        </a>
-
-      </section>
-
-      <!-- MATERIAL ISSUING CARD -->
-
-      <section
-        id="issuingDashboardCard"
-        class="content-card"
-        hidden>
-
-        <div class="card-header">
-
-          <h2>Material Issuing</h2>
-
-          <p>
-            Update issued quantity
-            for approved requests.
-          </p>
-
-        </div>
-
-        <a href="issuing.html"
-           class="primary-btn inline-btn">
-
-          Open Material Issuing
-
-        </a>
-
-      </section>
-
-      <!-- EMAIL RECEIPT CARD -->
-
-      <section
-        id="receiptDashboardCard"
-        class="content-card"
-        hidden>
-
-        <div class="card-header">
-
-          <h2>Email Receipt</h2>
-
-          <p>
-            Send digital material
-            issuing receipts to Staff.
-          </p>
-
-        </div>
-
-        <a href="receipt.html"
-           class="primary-btn inline-btn">
-
-          Open Email Receipt
-
-        </a>
-
+      <!-- STAFF MESSAGE -->
+      <section class="content-card" id="staffMessage"
+               data-role="Staff" hidden>
+        <h2>Staff Dashboard</h2>
+        <p>
+          Production requests are now handled
+          by the Production account.
+        </p>
       </section>
 
     </main>
-
   </div>
-
 </div>
-
-<!-- SUPABASE JAVASCRIPT LIBRARY -->
 
 <script defer
   src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
 </script>
-
-<!-- EXISTING SYSTEM JAVASCRIPT -->
-
 <script defer src="script.js"></script>
-
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-
-    function updateActiveMenu() {
-      const current = window.location.hash || "#dashboard";
-
-      document.querySelectorAll(
-        ".sidebar-nav a"
-      ).forEach(function (link) {
-
-        link.classList.toggle(
-          "active",
-          link.getAttribute("href") === current
-        );
-
-      });
-    }
-
-    updateActiveMenu();
-
-    window.addEventListener(
-      "hashchange",
-      updateActiveMenu
-    );
-
-  });
-</script>
-
-<!-- DASHBOARD SIDEBAR ICONS -->
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-
-  const nav = document.querySelector(
-    "#mainNav .sidebar-nav"
-  );
-
-  if (!nav) {
-    console.warn("Dashboard sidebar not found");
-    return;
-  }
-
-  // Add Employee Management menu
-  if (!document.getElementById("employeeNavLink")) {
-    const employeeLink = document.createElement("a");
-
-    employeeLink.id = "employeeNavLink";
-    employeeLink.href = "employees.html";
-    employeeLink.textContent = "Employee Management";
-
-    const receiptLink = nav.querySelector(
-      'a[href*="receipt.html"]'
-    );
-
-    if (receiptLink) {
-      receiptLink.after(employeeLink);
-    } else {
-      nav.appendChild(employeeLink);
-    }
-  }
-
-  // Consistent SVG icons
-  const icons = {
-    dashboard:
-      '<rect x="3" y="3" width="7" height="9" rx="1"/>' +
-      '<rect x="14" y="3" width="7" height="5" rx="1"/>' +
-      '<rect x="14" y="12" width="7" height="9" rx="1"/>' +
-      '<rect x="3" y="16" width="7" height="5" rx="1"/>',
-
-    create:
-      '<path d="M8 3h8l5 5v13H3V3z"/>' +
-      '<path d="M16 3v5h5"/>' +
-      '<path d="M12 12v6M9 15h6"/>',
-
-    history:
-      '<path d="M3 12a9 9 0 1 0 3-6.7"/>' +
-      '<path d="M3 3v5h5"/>' +
-      '<path d="M12 7v5l4 2"/>',
-
-    approval:
-      '<rect x="5" y="4" width="14" height="17" rx="2"/>' +
-      '<path d="M9 4.5h6"/>' +
-      '<path d="m9 13 2 2 4-4"/>',
-
-    issuing:
-      '<path d="m3 7 9-4 9 4-9 4z"/>' +
-      '<path d="M3 7v10l9 4 9-4V7"/>' +
-      '<path d="M12 11v10"/>' +
-      '<path d="m16 15 2 2 3-3"/>',
-
-    receipt:
-      '<rect x="3" y="5" width="18" height="14" rx="2"/>' +
-      '<path d="m3 7 9 6 9-6"/>',
-
-    employees:
-      '<circle cx="9" cy="8" r="3"/>' +
-      '<path d="M3 20v-2a6 6 0 0 1 12 0v2"/>' +
-      '<path d="M17 5a3 3 0 0 1 0 6"/>' +
-      '<path d="M18 14a5 5 0 0 1 3 5"/>',
-
-    logout:
-      '<path d="M10 17l5-5-5-5"/>' +
-      '<path d="M15 12H3"/>' +
-      '<path d="M12 3h6a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3h-6"/>'
-  };
-
-  const makeIcon = (content) => `
-    <svg
-      class="dpr-menu-icon"
-      width="19"
-      height="19"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="1.8"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      aria-hidden="true">
-      ${content}
-    </svg>
-  `;
-
-  nav.querySelectorAll("a").forEach(link => {
-
-    const label = link.textContent.trim().toLowerCase();
-    const href = (
-      link.getAttribute("href") || ""
-    ).toLowerCase();
-
-    let type = null;
-
-    if (href.includes("employees.html") ||
-        label.includes("employee")) {
-      type = "employees";
-    } else if (href.includes("logistic.html") ||
-               label.includes("approval")) {
-      type = "approval";
-    } else if (href.includes("issuing.html") ||
-               label.includes("issuing")) {
-      type = "issuing";
-    } else if (href.includes("receipt.html") ||
-               label.includes("receipt")) {
-      type = "receipt";
-    } else if (label.includes("history")) {
-      type = "history";
-    } else if (label.includes("create") ||
-               label.includes("new request")) {
-      type = "create";
-    } else if (label.includes("dashboard")) {
-      type = "dashboard";
-    }
-
-    if (!type) return;
-
-    // Replace old icons, preserve menu links
-    link.querySelectorAll(
-      "svg, i, .nav-icon"
-    ).forEach(oldIcon => oldIcon.remove());
-
-    link.insertAdjacentHTML(
-      "afterbegin",
-      makeIcon(icons[type])
-    );
-
-  });
-
-  const logoutButton =
-    document.getElementById("logoutButton");
-
-  if (logoutButton &&
-      !logoutButton.querySelector(".dpr-menu-icon")) {
-
-    logoutButton.insertAdjacentHTML(
-      "afterbegin",
-      makeIcon(icons.logout)
-    );
-  }
-
-});
-</script>
-
-<!-- ========================================
-     DASHBOARD NAVIGATION V7
-     PRODUCTION RECEIVING
-========================================= -->
-
-<style>
-  #productionReceivingNav {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    min-height: 46px;
-    padding: 13px;
-    border-radius: 9px;
-    color: #cbd5e1;
-    text-decoration: none;
-    font-size: 14px;
-  }
-
-  #productionReceivingNav:hover {
-    background: #1b2b40;
-    color: #5eead4;
-  }
-
-  #productionReceivingNav svg {
-    display: block;
-    width: 19px !important;
-    height: 19px !important;
-    min-width: 19px !important;
-    flex-shrink: 0;
-    fill: none !important;
-    stroke: currentColor !important;
-    stroke-width: 1.8;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-</style>
-
-<script>
-(function () {
-  "use strict";
-
-  function addReceivingNavigation() {
-    const welcome =
-      document.getElementById("welcomeMessage");
-
-    const signedInText =
-      welcome?.textContent ||
-      document.body.innerText.slice(0, 500);
-
-    // Allow only Production and Logistic.
-    const allowed =
-      /\((Production|Logistic)\)/i.test(signedInText);
-
-    const existing =
-      document.getElementById("productionReceivingNav");
-
-    if (!allowed) {
-      if (existing) existing.remove();
-      return;
-    }
-
-    if (existing) return;
-
-    const sidebar =
-      document.querySelector(
-        "#mainNav .sidebar-nav"
-      ) ||
-      document.getElementById("mainNav");
-
-    if (!sidebar) return;
-
-    const link = document.createElement("a");
-
-    link.id = "productionReceivingNav";
-    link.href = "receiving.html";
-
-    const svg = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "svg"
-    );
-
-    svg.setAttribute("viewBox", "0 0 24 24");
-    svg.setAttribute("aria-hidden", "true");
-
-    svg.innerHTML = `
-      <path d="m3 7 9-4 9 4-9 4-9-4z"/>
-      <path d="M3 7v10l9 4 9-4V7"/>
-      <path d="M12 11v10"/>
-      <path d="m8 16 3 3 5-6"/>
-    `;
-
-    const label = document.createElement("span");
-    label.textContent = "Production Receiving";
-
-    link.append(svg, label);
-
-    const historyLink =
-      sidebar.querySelector('a[href="#history"]');
-
-    const employeeLink =
-      sidebar.querySelector('a[href="employees.html"]');
-
-    if (historyLink) {
-      historyLink.insertAdjacentElement(
-        "afterend",
-        link
-      );
-    } else if (employeeLink) {
-      employeeLink.before(link);
-    } else {
-      sidebar.appendChild(link);
-    }
-  }
-
-  // Wait for the existing dashboard authentication
-  // and role display to finish loading.
-  let checks = 0;
-
-  const navigationCheck = setInterval(() => {
-    checks++;
-    addReceivingNavigation();
-
-    if (
-      document.getElementById(
-        "productionReceivingNav"
-      ) ||
-      checks >= 40
-    ) {
-      clearInterval(navigationCheck);
-    }
-  }, 250);
-
-})();
-</script>
-
-<!-- END DASHBOARD NAVIGATION V7 -->
-
 </body>
 </html>
