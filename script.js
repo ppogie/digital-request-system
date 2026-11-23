@@ -159,7 +159,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     role = profile?.role;
 
     if (!["Staff", "Logistic"].includes(role)) {
-      throw new Error(
+      throw new Error("Unsupported user role.")
         "Your account role is not supported yet."
       );
     }
@@ -183,6 +183,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     "request"
   ].forEach((id) => {
     setVisible(id, isStaff);
+     role === "Logistic" || role === "Production"
   });
 
   // 7. LOGISTIC NAVIGATION
