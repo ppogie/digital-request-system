@@ -1,89 +1,149 @@
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport"
-        content="width=device-width, initial-scale=1">
+        content="width=device-width, initial-scale=1.0">
+
   <title>Digital Production Request System</title>
 
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="dpr-theme.css">
 
+  <link rel="icon" href="data:,">
+
   <style>
-    [hidden] {
-      display: none !important;
-    }
+    /* =====================================
+       DASHBOARD V9
+       DARK NAVY + TURQUOISE
+       ROLE VISIBILITY FIX
+       ===================================== */
 
     :root {
-      --dpr-bg: #0b1220;
-      --dpr-panel: #151f32;
-      --dpr-input: #101b2d;
-      --dpr-border: #293548;
-      --dpr-muted: #94a3b8;
-      --dpr-teal: #2dd4bf;
+      --bg: #0b1220;
+      --sidebar: #0f172a;
+      --panel: #151f32;
+      --input: #101b2d;
+      --border: #293548;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --teal: #2dd4bf;
+    }
+
+    * {
+      box-sizing: border-box;
     }
 
     body {
-      background: var(--dpr-bg);
-      color: #f8fafc;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
     }
+
+    /*
+      IMPORTANT:
+      Hide elements BEFORE and AFTER login.
+      These rules must override sidebar and
+      Quick Access display styles.
+    */
+
+    [hidden],
+    #mainNav[hidden],
+    #appMain[hidden],
+    #mainNav .sidebar-nav a[hidden],
+    #appMain .dpr-card[hidden],
+    #appMain section[hidden],
+    #appMain [data-role][hidden] {
+      display: none !important;
+    }
+
+    /* =====================================
+       SIDEBAR
+       ===================================== */
 
     #mainNav.sidebar {
       width: 245px !important;
       flex: 0 0 245px !important;
       padding: 20px 14px !important;
+      background: var(--sidebar);
+      border-right: 1px solid var(--border);
+    }
+
+    #mainNav .brand {
+      padding: 5px 10px 20px;
     }
 
     #mainNav .brand h2 {
       font-size: 18px !important;
-      line-height: 1.35;
+      line-height: 1.4 !important;
       color: #f8fafc;
     }
 
     #mainNav .brand p {
+      color: var(--muted);
       font-size: 12px;
-      color: var(--dpr-muted);
     }
 
     #mainNav .sidebar-nav {
       display: flex !important;
       flex-direction: column !important;
-      gap: 6px;
+      gap: 6px !important;
     }
 
     #mainNav .sidebar-nav a {
       display: flex !important;
       align-items: center !important;
       flex-direction: row !important;
+      justify-content: flex-start !important;
+
       gap: 12px !important;
-      min-height: 44px;
-      padding: 11px 13px;
-      border-radius: 10px;
+      min-height: 44px !important;
+
+      padding: 11px 13px !important;
+      border-radius: 10px !important;
+
       color: #cbd5e1;
       text-decoration: none;
-      font-size: 14px;
-      line-height: 1.4;
+
+      font-size: 14px !important;
+      line-height: 1.4 !important;
+    }
+
+    #mainNav .sidebar-nav a:hover {
+      background: #243247 !important;
+      color: #5eead4 !important;
     }
 
     #mainNav .sidebar-nav a.active {
       background: #164e4a !important;
       color: #5eead4 !important;
-      border-left: 3px solid var(--dpr-teal);
+      border-left: 3px solid var(--teal) !important;
     }
 
-    #mainNav .sidebar-nav a:hover {
-      background: #243247;
-      color: #5eead4;
+    /* FIX ROLE MENU VISIBILITY */
+
+    #mainNav .sidebar-nav a[hidden] {
+      display: none !important;
+      visibility: hidden !important;
     }
 
-    .dpr-icon {
+    /* ICONS */
+
+    #mainNav .dpr-icon,
+    #logoutButton .dpr-icon {
       display: block !important;
       width: 19px !important;
       height: 19px !important;
       min-width: 19px !important;
       max-width: 19px !important;
-      flex: 0 0 19px !important;
+      min-height: 19px !important;
+      max-height: 19px !important;
+
+      flex-shrink: 0 !important;
+
       fill: none !important;
       stroke: currentColor !important;
       stroke-width: 1.8 !important;
@@ -91,7 +151,8 @@
       stroke-linejoin: round;
     }
 
-    .dpr-icon * {
+    #mainNav .dpr-icon *,
+    #logoutButton .dpr-icon * {
       fill: none !important;
       stroke: currentColor !important;
     }
@@ -103,9 +164,14 @@
       gap: 10px;
     }
 
+    /* =====================================
+       DASHBOARD OVERVIEW
+       ===================================== */
+
     .dpr-stats {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns:
+        repeat(3, minmax(0, 1fr));
       gap: 20px;
       margin: 24px 0 28px;
     }
@@ -113,36 +179,44 @@
     .dpr-stat {
       min-height: 145px;
       background: #172339;
-      border: 1px solid var(--dpr-border);
-      border-left: 4px solid var(--accent, #2dd4bf);
+
+      border: 1px solid var(--border);
+      border-left: 4px solid
+        var(--accent, #2dd4bf);
+
       border-radius: 15px;
       padding: 22px;
     }
 
     .dpr-stat .label {
       display: block;
-      color: #a8b5c8;
       font-size: 13px;
+      color: #a8b5c8;
       margin-bottom: 23px;
     }
 
     .dpr-stat .number {
+      color: #f8fafc;
       font-size: 35px;
       font-weight: 700;
       line-height: 1.1;
-      color: #f8fafc;
     }
 
     .dpr-status-note {
-      color: #94a3b8;
+      color: var(--muted);
       font-size: 12px;
       line-height: 1.6;
       margin: 12px 0 0;
     }
 
+    /* =====================================
+       QUICK ACCESS
+       ===================================== */
+
     .dpr-grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns:
+        repeat(3, minmax(0, 1fr));
       gap: 16px;
     }
 
@@ -151,21 +225,24 @@
       flex-direction: column;
       justify-content: center;
       gap: 12px;
+
       min-height: 145px;
       padding: 22px;
-      background: var(--dpr-input);
-      border: 1px solid var(--dpr-border);
+
+      background: var(--input);
+      border: 1px solid var(--border);
       border-radius: 13px;
+
       color: #f8fafc !important;
       text-decoration: none !important;
     }
 
-    .dpr-card:before {
+    .dpr-card::before {
       content: "";
       width: 33px;
       height: 4px;
       border-radius: 4px;
-      background: var(--dpr-teal);
+      background: var(--teal);
     }
 
     .dpr-card strong {
@@ -174,20 +251,46 @@
     }
 
     .dpr-card small {
+      color: var(--muted);
       font-size: 12px;
       font-weight: normal;
       line-height: 1.6;
-      color: var(--dpr-muted);
     }
 
     .dpr-card:hover {
       background: #1b2b40;
-      border-color: var(--dpr-teal);
+      border-color: var(--teal);
+    }
+
+    /* FIX QUICK ACCESS ROLE VISIBILITY */
+
+    #appMain .dpr-card[hidden] {
+      display: none !important;
+      visibility: hidden !important;
+    }
+
+    /* =====================================
+       REQUEST HISTORY
+       ===================================== */
+
+    .history-toolbar {
+      display: flex;
+      gap: 12px;
+      margin: 16px 0;
+    }
+
+    .history-toolbar input {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .history-toolbar select {
+      min-width: 170px;
     }
 
     .dpr-history-wrap {
       overflow-x: auto;
-      border: 1px solid var(--dpr-border);
+      border: 1px solid var(--border);
       border-radius: 12px;
       margin-top: 16px;
     }
@@ -202,15 +305,15 @@
       background: #233249;
       color: #e2e8f0;
       padding: 15px;
-      text-align: left;
       font-size: 13px;
+      text-align: left;
     }
 
     .dpr-history-table td {
       padding: 15px;
-      border-top: 1px solid var(--dpr-border);
-      font-size: 13px;
+      border-top: 1px solid var(--border);
       color: #cbd5e1;
+      font-size: 13px;
     }
 
     .dpr-pill {
@@ -235,12 +338,18 @@
       color: #fda4af;
     }
 
+    /* =====================================
+       MESSAGES
+       ===================================== */
+
     .dpr-alert {
       margin: 16px 0;
       padding: 13px 16px;
-      border-radius: 9px;
+
       background: #142b3a;
       border: 1px solid #28536a;
+      border-radius: 9px;
+
       color: #93c5fd;
       font-size: 13px;
       line-height: 1.6;
@@ -252,30 +361,20 @@
       color: #fda4af;
     }
 
-    .history-toolbar {
-      display: flex;
-      gap: 12px;
-      margin: 16px 0;
-    }
-
-    .history-toolbar input {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .history-toolbar select {
-      min-width: 170px;
-    }
-
     #requestFeedback {
       margin-top: 12px;
       font-size: 13px;
     }
 
+    /* =====================================
+       MOBILE
+       ===================================== */
+
     @media (max-width: 1050px) {
       .dpr-stats,
       .dpr-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns:
+          repeat(2, minmax(0, 1fr));
       }
     }
 
@@ -283,11 +382,12 @@
       #mainNav.sidebar {
         width: 100% !important;
         flex: none !important;
+        height: auto !important;
       }
 
       #mainNav .sidebar-nav {
         flex-direction: row !important;
-        flex-wrap: wrap;
+        flex-wrap: wrap !important;
       }
 
       .dpr-stats,
@@ -304,15 +404,20 @@
       }
     }
   </style>
-  <link rel="icon" href="data:,">
 </head>
 
 <body>
+
 <div class="app-shell">
 
-  <!-- SIDEBAR -->
+  <!-- =====================================
+       SIDEBAR
+       ===================================== -->
+
   <aside class="sidebar" id="mainNav" hidden>
+
     <div>
+
       <div class="brand">
         <h2>Digital Production Request</h2>
         <p>Raw Material Request System</p>
@@ -320,15 +425,24 @@
 
       <nav class="sidebar-nav" id="sidebarMenu">
 
-        <a href="#dashboard" data-role="all"
-           data-icon="dashboard" class="active">
+        <!-- ALL ROLES -->
+
+        <a href="#dashboard"
+           class="active"
+           data-role="all"
+           data-icon="dashboard">
           Dashboard
         </a>
 
-        <a href="#request" data-role="Production"
+        <!-- PRODUCTION ONLY -->
+
+        <a href="#request"
+           data-role="Production"
            data-icon="request">
           Create Request
         </a>
+
+        <!-- PRODUCTION & LOGISTIC -->
 
         <a href="#history"
            data-role="Production,Logistic"
@@ -342,20 +456,27 @@
           Production Receiving
         </a>
 
-        <a href="logistic.html" data-role="Logistic"
+        <!-- LOGISTIC ONLY -->
+
+        <a href="logistic.html"
+           data-role="Logistic"
            data-icon="approval">
           Logistic Approval
         </a>
 
-        <a href="issuing.html" data-role="Logistic"
+        <a href="issuing.html"
+           data-role="Logistic"
            data-icon="issuing">
           Material Issuing
         </a>
 
-        <a href="receipt.html" data-role="Logistic"
+        <a href="receipt.html"
+           data-role="Logistic"
            data-icon="receipt">
           Email Receipt
         </a>
+
+        <!-- PRODUCTION & LOGISTIC -->
 
         <a href="employees.html"
            data-role="Production,Logistic"
@@ -373,235 +494,469 @@
     </div>
 
     <div class="sidebar-footer">
-      <button id="logoutButton"
-              type="button"
+      <button type="button"
+              id="logoutButton"
               class="logout-btn">
         Logout
       </button>
     </div>
+
   </aside>
 
+  <!-- =====================================
+       MAIN AREA
+       ===================================== -->
+
   <div class="main-area">
+
     <header class="topbar">
+
       <div>
         <h1>Digital Production Request</h1>
+
         <p id="welcomeMessage">
           Checking account...
         </p>
       </div>
+
     </header>
 
     <div id="authNotice" class="notice-card">
       Checking your login session...
     </div>
 
-    <main id="appMain" class="dashboard-content" hidden>
+    <main id="appMain"
+          class="dashboard-content"
+          hidden>
 
-      <!-- DASHBOARD OVERVIEW -->
+      <!-- =====================================
+           DASHBOARD OVERVIEW
+           ===================================== -->
+
       <section id="dashboard">
+
         <h2>Dashboard Overview</h2>
+
         <p>
-          Monitor and manage production material requests.
+          Monitor and manage production
+          material requests.
         </p>
 
         <div class="dpr-stats">
-          <div class="dpr-stat" style="--accent:#fbbf24">
-            <span class="label">Pending Requests</span>
-            <div class="number" id="pendingCount">—</div>
+
+          <div class="dpr-stat"
+               style="--accent:#fbbf24">
+            <span class="label">
+              Pending Requests
+            </span>
+            <div class="number"
+                 id="pendingCount">—</div>
           </div>
 
-          <div class="dpr-stat" style="--accent:#2dd4bf">
-            <span class="label">Approved Requests</span>
-            <div class="number" id="approvedCount">—</div>
+          <div class="dpr-stat"
+               style="--accent:#2dd4bf">
+            <span class="label">
+              Approved Requests
+            </span>
+            <div class="number"
+                 id="approvedCount">—</div>
           </div>
 
-          <div class="dpr-stat" style="--accent:#fb7185">
-            <span class="label">Rejected Requests</span>
-            <div class="number" id="rejectedCount">—</div>
+          <div class="dpr-stat"
+               style="--accent:#fb7185">
+            <span class="label">
+              Rejected Requests
+            </span>
+            <div class="number"
+                 id="rejectedCount">—</div>
           </div>
 
-          <div class="dpr-stat" style="--accent:#60a5fa">
-            <span class="label">Receiving Records</span>
-            <div class="number" id="receivedCount">—</div>
+          <div class="dpr-stat"
+               style="--accent:#60a5fa">
+            <span class="label">
+              Receiving Records
+            </span>
+            <div class="number"
+                 id="receivedCount">—</div>
           </div>
 
-          <div class="dpr-stat" style="--accent:#fbbf24">
-            <span class="label">Pending Material Returns</span>
-            <div class="number" id="returnPendingCount">—</div>
+          <div class="dpr-stat"
+               style="--accent:#fbbf24">
+            <span class="label">
+              Pending Material Returns
+            </span>
+            <div class="number"
+                 id="returnPendingCount">—</div>
           </div>
 
-          <div class="dpr-stat" style="--accent:#34d399">
-            <span class="label">Accepted Material Returns</span>
-            <div class="number" id="returnAcceptedCount">—</div>
+          <div class="dpr-stat"
+               style="--accent:#34d399">
+            <span class="label">
+              Accepted Material Returns
+            </span>
+            <div class="number"
+                 id="returnAcceptedCount">—</div>
           </div>
+
         </div>
 
-        <p class="dpr-status-note" id="dashboardScope">
+        <p class="dpr-status-note"
+           id="dashboardScope">
           Loading data...
         </p>
+
         <div id="dashboardError" hidden></div>
+
       </section>
 
-      <!-- QUICK ACCESS -->
+      <!-- =====================================
+           QUICK ACCESS
+           ===================================== -->
+
       <section class="content-card">
+
         <div class="card-header">
           <h2>Quick Access</h2>
-          <p>Access production request management modules.</p>
+          <p>
+            Access production request
+            management modules.
+          </p>
         </div>
 
         <div class="dpr-grid">
-          <a href="#request" class="dpr-card"
+
+          <!-- PRODUCTION -->
+
+          <a href="#request"
+             class="dpr-card"
              data-role="Production">
+
             <strong>Create Request</strong>
-            <small>Submit a new production material request.</small>
+
+            <small>
+              Submit a new production
+              material request.
+            </small>
+
           </a>
 
-          <a href="#history" class="dpr-card"
+          <!-- PRODUCTION & LOGISTIC -->
+
+          <a href="#history"
+             class="dpr-card"
              data-role="Production,Logistic">
+
             <strong>Request History</strong>
-            <small>Track request status and previous records.</small>
+
+            <small>
+              Track request status
+              and previous records.
+            </small>
+
           </a>
 
-          <a href="receiving.html" class="dpr-card"
+          <a href="receiving.html"
+             class="dpr-card"
              data-role="Production,Logistic">
+
             <strong>Production Receiving</strong>
-            <small>Confirm materials received from Logistic.</small>
+
+            <small>
+              Confirm materials received
+              from Logistic.
+            </small>
+
           </a>
 
-          <a href="logistic.html" class="dpr-card"
+          <!-- LOGISTIC ONLY -->
+
+          <a href="logistic.html"
+             class="dpr-card"
              data-role="Logistic">
+
             <strong>Logistic Approval</strong>
-            <small>Approve or reject production requests.</small>
+
+            <small>
+              Approve or reject
+              production requests.
+            </small>
+
           </a>
 
-          <a href="issuing.html" class="dpr-card"
+          <a href="issuing.html"
+             class="dpr-card"
              data-role="Logistic">
+
             <strong>Material Issuing</strong>
-            <small>Issue materials for approved requests.</small>
+
+            <small>
+              Issue materials
+              for approved requests.
+            </small>
+
           </a>
 
-          <a href="receipt.html" class="dpr-card"
+          <a href="receipt.html"
+             class="dpr-card"
              data-role="Logistic">
+
             <strong>Email Receipt</strong>
-            <small>Manage digital issuing receipts.</small>
+
+            <small>
+              Manage digital
+              issuing receipts.
+            </small>
+
           </a>
 
-          <a href="employees.html" class="dpr-card"
+          <!-- PRODUCTION & LOGISTIC -->
+
+          <a href="employees.html"
+             class="dpr-card"
              data-role="Production,Logistic">
+
             <strong>Employee Management</strong>
-            <small>View or manage employee records.</small>
+
+            <small>
+              View or manage
+              employee records.
+            </small>
+
           </a>
 
-          <a href="material-return.html" class="dpr-card"
+          <a href="material-return.html"
+             class="dpr-card"
              data-role="Production,Logistic">
+
             <strong>Material Return</strong>
-            <small>Submit or verify returned materials.</small>
+
+            <small>
+              Submit or verify
+              returned materials.
+            </small>
+
           </a>
+
         </div>
       </section>
 
-      <!-- CREATE REQUEST -->
-      <section id="request" class="content-card"
-               data-role="Production" hidden>
+      <!-- =====================================
+           CREATE PRODUCTION REQUEST
+           ===================================== -->
+
+      <section id="request"
+               class="content-card"
+               data-role="Production"
+               hidden>
+
         <div class="card-header">
+
           <h2>Create Production Request</h2>
-          <p>Enter the details to request raw materials.</p>
+
+          <p>
+            Enter the details to
+            request raw materials.
+          </p>
+
         </div>
 
-        <form id="requestForm" class="request-form">
+        <form id="requestForm"
+              class="request-form">
+
           <div class="form-grid">
 
             <div class="form-group">
-              <label for="requestId">Request ID</label>
-              <input id="requestId" type="text"
-                     placeholder="REQ-TEST-013" required>
+
+              <label for="requestId">
+                Request ID
+              </label>
+
+              <input type="text"
+                     id="requestId"
+                     placeholder="REQ-TEST-013"
+                     required>
+
             </div>
 
             <div class="form-group">
-              <label for="requestDate">Request Date</label>
-              <input id="requestDate" type="date" required>
+
+              <label for="requestDate">
+                Request Date
+              </label>
+
+              <input type="date"
+                     id="requestDate"
+                     required>
+
             </div>
 
             <div class="form-group">
-              <label for="staffId">Staff ID</label>
-              <input id="staffId" type="text"
+
+              <label for="staffId">
+                Staff ID
+              </label>
+
+              <input type="text"
+                     id="staffId"
                      placeholder="Enter Testing Staff ID"
                      required>
+
             </div>
 
             <div class="form-group">
-              <label for="productModel">Product Model</label>
-              <input id="productModel" type="text"
+
+              <label for="productModel">
+                Product Model
+              </label>
+
+              <input type="text"
+                     id="productModel"
                      placeholder="Enter Testing Product Model"
                      required>
+
             </div>
 
             <div class="form-group">
+
               <label for="productionQuantity">
                 Production Quantity
               </label>
-              <input id="productionQuantity" type="number"
-                     min="1" step="1" required>
+
+              <input type="number"
+                     id="productionQuantity"
+                     min="1"
+                     step="1"
+                     required>
+
             </div>
 
           </div>
 
           <div class="form-group">
-            <label for="remarks">Remarks</label>
-            <textarea id="remarks" rows="4"
-                      placeholder="Enter remarks"></textarea>
+
+            <label for="remarks">
+              Remarks
+            </label>
+
+            <textarea id="remarks"
+                      rows="4"
+                      placeholder="Enter remarks">
+            </textarea>
+
           </div>
 
           <div class="form-actions">
-            <button id="submitRequest" type="submit"
-                    class="primary-btn" disabled>
+
+            <button type="submit"
+                    id="submitRequest"
+                    class="primary-btn"
+                    disabled>
+
               Submit Request
+
             </button>
+
           </div>
 
-          <p id="requestFeedback" role="status"></p>
+          <p id="requestFeedback"
+             role="status"></p>
+
         </form>
+
       </section>
 
-      <!-- REQUEST HISTORY -->
-      <section id="history" class="content-card"
-               data-role="Production,Logistic" hidden>
+      <!-- =====================================
+           REQUEST HISTORY
+           ===================================== -->
+
+      <section id="history"
+               class="content-card"
+               data-role="Production,Logistic"
+               hidden>
+
         <div class="card-header">
+
           <h2>Request History</h2>
-          <p>View and track production request records.</p>
+
+          <p>
+            View and track production
+            request records.
+          </p>
+
         </div>
 
         <div class="history-toolbar">
-          <input id="requestSearch" type="search"
-                 placeholder="Search Request ID, Staff ID or Model...">
+
+          <input
+            id="requestSearch"
+            type="search"
+            placeholder="Search Request ID, Staff ID or Model...">
+
           <select id="requestStatusFilter">
-            <option value="All">All Status</option>
-            <option value="Pending">Pending</option>
-            <option value="Approved">Approved</option>
-            <option value="Rejected">Rejected</option>
+
+            <option value="All">
+              All Status
+            </option>
+
+            <option value="Pending">
+              Pending
+            </option>
+
+            <option value="Approved">
+              Approved
+            </option>
+
+            <option value="Rejected">
+              Rejected
+            </option>
+
           </select>
+
         </div>
 
-        <div id="requestList">Loading requests...</div>
+        <div id="requestList">
+          Loading requests...
+        </div>
+
       </section>
 
-      <!-- STAFF MESSAGE -->
-      <section class="content-card" id="staffMessage"
-               data-role="Staff" hidden>
+      <!-- =====================================
+           STAFF DASHBOARD
+           ===================================== -->
+
+      <section class="content-card"
+               id="staffMessage"
+               data-role="Staff"
+               hidden>
+
         <h2>Staff Dashboard</h2>
+
         <p>
-          Production requests are now handled
-          by the Production account.
+          Production requests are now
+          managed by the Production account.
         </p>
+
       </section>
 
     </main>
+
   </div>
+
 </div>
+
+<!-- =====================================
+     SUPABASE LIBRARY
+     ===================================== -->
 
 <script defer
   src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
 </script>
+
+<!-- =====================================
+     EXISTING SCRIPT.JS V8
+     ===================================== -->
+
 <script defer src="script.js"></script>
+
 </body>
 </html>
